@@ -12,9 +12,19 @@ import { UserGroup } from './entities/user-group.entity';
 import { UserAchievement } from './entities/user-achievement.entity';
 import { Achievement } from './entities/achievement.entity';
 import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
+import { resolve } from 'path';
+
+console.log('🧭 Current directory:', __dirname);
+console.log('📦 JWT_SECRET =>', process.env.JWT_SECRET);
+
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: resolve(__dirname, '..', '.env'), // 🔥 sube 2 niveles desde dist/src
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: 'postgresql://postgres:UfAwAazKXvllne5Z@db.cycopkapgabeydknnyhj.supabase.co:5432/postgres',
