@@ -15,16 +15,16 @@ export class Achievement {
   id: string;
 
   @Column({ length: 100 })
-  name: string; // nombre único del logro
+  name: string; 
 
   @Column({ type: 'text', nullable: true })
-  description?: string; // descripción opcional
+  description?: string;
 
   @Column({ nullable: true, length: 2048 })
-  iconUrl?: string; // URL del icono o imagen del logro
+  iconUrl?: string; 
 
   @Column({ type: 'int', default: 0 })
-  xpReward: number; // puntos de experiencia otorgados
+  xpReward: number; 
 
   @CreateDateColumn()
   createdAt: Date;

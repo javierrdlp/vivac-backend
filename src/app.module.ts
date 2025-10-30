@@ -15,19 +15,15 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { resolve } from 'path';
 
-console.log('🧭 Current directory:', __dirname);
-console.log('📦 JWT_SECRET =>', process.env.JWT_SECRET);
-
-
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: resolve(__dirname, '..', '.env'), // 🔥 sube 2 niveles desde dist/src
+      envFilePath: resolve(__dirname, '..', '.env'), 
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: 'postgresql://postgres:UfAwAazKXvllne5Z@db.cycopkapgabeydknnyhj.supabase.co:5432/postgres',
+      url: process.env.DATABASE_URL,
       synchronize: true, // dejar activado solo durante desarrollo
       schema: 'public',
       ssl: { rejectUnauthorized: false },
@@ -48,6 +44,12 @@ console.log('📦 JWT_SECRET =>', process.env.JWT_SECRET);
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(){
+  console.log('🧭 Current directory:', __dirname);
+  console.log('📦 JWT_SECRET =>', process.env.JWT_SECRET);
+  console.log('📧 MAIL_USER =>', process.env.MAIL_USER);
+  }
+}
 
 
