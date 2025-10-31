@@ -46,9 +46,9 @@ import { resolve } from 'path';
 })
 export class AppModule {
   constructor(){
-  console.log('🧭 Current directory:', __dirname);
-  console.log('📦 JWT_SECRET =>', process.env.JWT_SECRET);
-  console.log('📧 MAIL_USER =>', process.env.MAIL_USER);
+  console.log('Current directory:', __dirname);
+  console.log('JWT_SECRET =>', process.env.JWT_SECRET);
+  console.log('MAIL_USER =>', process.env.MAIL_USER);
   }
 }
 
