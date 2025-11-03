@@ -7,11 +7,13 @@ import { AuthController } from './auth.controller';
 import { User } from '../entities/user.entity';
 import { PasswordResetToken } from '../entities/password-reset-token.entity'; 
 import { MailModule } from '../mail/mail.module';
+import { UserSession } from 'src/auth/entities/user-session.entity';
+import { SessionService } from './services/session.service';
 
 @Module({
   imports: [    
     ConfigModule,
-    TypeOrmModule.forFeature([User, PasswordResetToken]),
+    TypeOrmModule.forFeature([User, PasswordResetToken, UserSession]),
     MailModule,
     //Configuración asíncrona de JWT usando variables del .env
     JwtModule.registerAsync({
@@ -36,5 +38,6 @@ import { MailModule } from '../mail/mail.module';
 
   // 📬 Controladores HTTP asociados
   controllers: [AuthController],
+   exports: [SessionService], // ✅ exporta para usarlo en otros módulos si hace falta
 })
 export class AuthModule {}

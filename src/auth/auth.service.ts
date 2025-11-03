@@ -8,31 +8,34 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
-import { MailService } from '../mail/mail.service'; // ✅ ruta relativa corregida
+import { MailService } from '../mail/mail.service';
 import { PasswordResetToken } from '../entities/password-reset-token.entity';
 import { randomBytes } from 'crypto';
 import { addMinutes } from 'date-fns';
+import { SessionService } from './services/session.service';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
-    private readonly usersRepo: Repository<User>, // 🧱 Repositorio principal de usuarios
+    private readonly usersRepo: Repository<User>,
 
     @InjectRepository(PasswordResetToken)
-    private readonly passwordResetRepo: Repository<PasswordResetToken>, // 🔑 Tokens de recuperación
+    private readonly passwordResetRepo: Repository<PasswordResetToken>,
 
-    private readonly jwt: JwtService, // 🔐 Servicio de JWT para firmar tokens
-    private readonly mailService: MailService, // 💌 Servicio de envío de correos
+    private readonly jwt: JwtService,
+    private readonly mailService: MailService,
+    private readonly sessionService: SessionService,
   ) {}
 
-  // ========================================================
-  // 🧩 REGISTRO DE NUEVO USUARIO
-  // ========================================================
+  // -------------------------
+  // Registro de nuevo usuario
+  // -------------------------
   async register(userName: string, email: string, password: string) {
     console.log('🧩 Registro de usuario:', { userName, email });
 
-    // 🔎 Comprobamos si ya existe un usuario con ese email o username
+    // Comprobamos si ya existe un usuario con ese email o username
     const existing = await this.usersRepo.findOne({
       where: [{ email }, { userName }],
     });
@@ -46,25 +49,23 @@ export class AuthService {
       }
     }
 
-    // 🔐 Hasheamos la contraseña antes de guardarla
+    // Hasheamos la contraseña antes de guardarla
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log('🔐 Hash generado:', hashedPassword);
 
-    // 🧱 Creamos el nuevo usuario (usando el campo correcto)
+    // Creamos el nuevo usuario
     const user = this.usersRepo.create({
       userName,
       email,
-      passwordHash: hashedPassword, // ⚠️ importante: usar passwordHash, no password
+      passwordHash: hashedPassword,
     });
 
-    // 💾 Guardamos el usuario en la base de datos
     await this.usersRepo.save(user);
     console.log('✅ Usuario guardado en la base de datos:', user.email);
 
-    // 🎟️ Generamos el token JWT
+    // Generamos un access token (solo acceso rápido)
     const accessToken = this.jwt.sign({ sub: user.id, email: user.email });
 
-    // 📤 Devolvemos la respuesta al frontend
     return {
       user: {
         id: user.id,
@@ -75,74 +76,107 @@ export class AuthService {
     };
   }
 
-  // ========================================================
-  // 🔑 LOGIN DE USUARIO EXISTENTE
-  // ========================================================
-  async login(email: string, password: string) {
-    console.log('📩 Login attempt:', { email, password });
+  // -------------------------
+  // Login de usuario existente
+  // -------------------------
+  async login(email: string, password: string, req: Request) {
+    console.log('📩 Intento de login:', { email });
 
-    // 🔍 Buscamos el usuario incluyendo el hash de la contraseña
+    // Buscamos el usuario incluyendo el hash de la contraseña
     const user = await this.usersRepo
       .createQueryBuilder('user')
-      .addSelect('user.passwordHash') // ⚙️ select: false → debemos añadirlo manualmente
+      .addSelect('user.passwordHash')
       .where('user.email = :email', { email })
       .getOne();
 
-    console.log('🧱 Resultado de búsqueda de usuario:', user);
-
-    // ⚠️ Si no se encuentra el usuario, lanzamos error
     if (!user) {
       console.log('⚠️ Usuario no encontrado');
       throw new NotFoundException('User not found');
     }
 
-    // 🧩 Verificación previa de datos
-    if (!password || !user.passwordHash) {
-      console.log('❌ Faltan datos para comparar con bcrypt:', {
-        password,
-        passwordHash: user.passwordHash,
-      });
-      throw new UnauthorizedException('Missing password or password hash');
+    // Comprobamos la contraseña
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) {
+      console.log('🚫 Contraseña incorrecta');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    try {
-      // 🔍 Comparamos la contraseña introducida con el hash almacenado
-      const valid = await bcrypt.compare(password, user.passwordHash);
-      console.log('✅ Resultado de bcrypt.compare:', valid);
+    // Si la contraseña es válida, generamos tokens
+    const accessToken = this.generateAccessToken(user);
+    const refreshToken = this.generateRefreshToken();
 
-      if (!valid) {
-        console.log('🚫 Contraseña incorrecta');
-        throw new UnauthorizedException('Invalid credentials');
-      }
+    // Guardamos la sesión en la base de datos
+    await this.sessionService.createSession({
+      user,
+      refreshToken,
+      ipAddress: (req as any).ip,
+      userAgent: req.headers['user-agent'] || 'unknown',
+    });
 
-      console.log('✅ Contraseña válida, generando token...');
-      const token = this.jwt.sign({ sub: user.id, email: user.email });
+    console.log('✅ Login correcto, sesión creada en DB');
 
-      // 📤 Respuesta con el JWT
-      return {
-        user: { id: user.id, userName: user.userName, email },
-        accessToken: token,
-      };
-    } catch (error) {
-      console.error('💥 Error en bcrypt.compare:', error);
-      throw new UnauthorizedException('Error comparing password');
-    }
+    // Devolvemos ambos tokens
+    return {
+      user: { id: user.id, userName: user.userName, email },
+      accessToken,
+      refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: 900, // 15 minutos
+    };
   }
-  
-  //SOLICITUD DE RESTABLECIMIENTO DE CONTRASEÑA
- 
+
+  // -------------------------
+  // Refrescar el access token
+  // -------------------------
+  async refresh(refreshToken: string) {
+    // Buscamos la sesión en la base de datos
+    const session = await this.sessionService.findValidByToken(refreshToken);
+    if (!session) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const user = session.user;
+
+    // Rotamos el refresh token por seguridad
+    const newRefresh = this.generateRefreshToken();
+
+    await this.sessionService.revokeByToken(refreshToken);
+    await this.sessionService.createSession({
+      user,
+      refreshToken: newRefresh,
+    });
+
+    const accessToken = this.generateAccessToken(user);
+
+    return {
+      accessToken,
+      refreshToken: newRefresh,
+      tokenType: 'Bearer',
+      expiresIn: 900,
+    };
+  }
+
+  // -------------------------
+  // Logout: cerrar sesión
+  // -------------------------
+  async logout(refreshToken: string) {
+    await this.sessionService.revokeByToken(refreshToken);
+    console.log('🚪 Sesión revocada correctamente');
+    return { success: true };
+  }
+
+  // -------------------------
+  // Solicitud de reseteo de contraseña
+  // -------------------------
   async requestPasswordReset(email: string) {
     console.log('📩 Solicitud de reseteo de contraseña para:', email);
 
-    // 1️⃣ Buscamos el usuario por email
     const user = await this.usersRepo.findOne({ where: { email } });
     if (!user) throw new NotFoundException('User not found');
 
-    // 2️⃣ Generamos un token aleatorio y una fecha de expiración (1 hora)
     const token = randomBytes(32).toString('hex');
     const expiresAt = addMinutes(new Date(), 15);
 
-    // 3️⃣ Creamos y guardamos el registro del token
     const resetToken = this.passwordResetRepo.create({
       user,
       token,
@@ -150,36 +184,29 @@ export class AuthService {
     });
     await this.passwordResetRepo.save(resetToken);
 
-    // 4️⃣ Enviamos el correo de recuperación
     await this.mailService.sendPasswordReset(email, token);
-
     console.log('📨 Email de recuperación enviado a:', email);
 
-    // 5️⃣ Respondemos al frontend
     return { message: 'Email de recuperación enviado correctamente' };
   }
 
-  // ========================================================
-  // 🧱 RESTABLECER CONTRASEÑA USANDO TOKEN
-  // ========================================================
+  // -------------------------
+  // Restablecer contraseña
+  // -------------------------
   async resetPassword(token: string, newPassword: string) {
     console.log('🔑 Intentando restablecer contraseña con token:', token);
 
-    // 1️⃣ Buscamos el token en la base de datos
     const record = await this.passwordResetRepo.findOne({
       where: { token, used: false },
-      relations: ['user'], // ⚙️ Incluimos el usuario relacionado
+      relations: ['user'],
     });
 
-    // 2️⃣ Validamos el token
     if (!record) throw new UnauthorizedException('Invalid or used token');
     if (record.expiresAt < new Date())
       throw new UnauthorizedException('Token expired');
 
-    // 3️⃣ Hasheamos la nueva contraseña
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    // 4️⃣ Actualizamos el usuario y marcamos el token como usado
     record.user.passwordHash = hashed;
     record.used = true;
 
@@ -188,9 +215,23 @@ export class AuthService {
 
     console.log('✅ Contraseña actualizada correctamente para:', record.user.email);
 
-    // 5️⃣ Respondemos al frontend
     return { message: 'Contraseña restablecida correctamente' };
   }
+
+  // -------------------------
+  // Funciones auxiliares
+  // -------------------------
+  private generateAccessToken(user: { id: string; email: string }) {
+    return this.jwt.sign(
+      { sub: user.id, email: user.email },
+      { expiresIn: '15m' },
+    );
+  }
+
+  private generateRefreshToken(): string {
+    return randomBytes(32).toString('hex');
+  }
 }
+
 
 

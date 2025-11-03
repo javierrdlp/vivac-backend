@@ -16,6 +16,7 @@ import { Group } from './group.entity';
 import { UserGroup } from './user-group.entity';
 import { GroupMessage } from './group-message.entity';
 import { UserExperience } from '../enums/user-experience.enum';
+import { UserSession } from '../auth/entities/user-session.entity';
 
 @Entity()
 @Check(`"xpPoints" >= 0`)
@@ -101,5 +102,8 @@ export class User {
 
   @OneToMany(() => Group, (group) => group.createdBy)
   groupsCreated: Group[];
+
+  @OneToMany(() => UserSession, (session) => session.user)
+  sessions: UserSession[];
 }
 
