@@ -27,17 +27,15 @@ import { SessionService } from './services/session.service';
         // ✅ Configuración final del módulo JWT
         return {
           secret: secret || 'fallbackSecret',
-          signOptions: { expiresIn: expiresIn as any }, // ✅ corregido
+          signOptions: { expiresIn: expiresIn as any }, 
         };
       },
     }),
   ],
-
-  // 🧩 Providers: servicios disponibles en este módulo
-  providers: [AuthService],
-
-  // 📬 Controladores HTTP asociados
   controllers: [AuthController],
-   exports: [SessionService], // ✅ exporta para usarlo en otros módulos si hace falta
+  
+  providers: [AuthService, SessionService],
+
+  exports: [SessionService], 
 })
 export class AuthModule {}
