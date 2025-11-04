@@ -9,6 +9,7 @@ import { PasswordResetToken } from '../entities/password-reset-token.entity';
 import { MailModule } from '../mail/mail.module';
 import { UserSession } from 'src/auth/entities/user-session.entity';
 import { SessionService } from './services/session.service';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [    
@@ -34,7 +35,7 @@ import { SessionService } from './services/session.service';
   ],
   controllers: [AuthController],
   
-  providers: [AuthService, SessionService],
+  providers: [AuthService, SessionService, JwtStrategy],
 
   exports: [SessionService], 
 })
