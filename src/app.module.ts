@@ -14,6 +14,7 @@ import { Achievement } from './entities/achievement.entity';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { resolve } from 'path';
+import { VivacModule } from './vivac/vivac.module';
 
 @Module({
   imports: [
@@ -39,7 +40,9 @@ import { resolve } from 'path';
       UserGroup,
       UserAchievement,
       Achievement,
-    ]), AuthModule,
+    ]),
+    AuthModule,
+    VivacModule,
   ],
   controllers: [AppController],
   providers: [AppService],
