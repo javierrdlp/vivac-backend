@@ -2,49 +2,14 @@ import { Controller, Post, Body, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { Request } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiProperty, ApiBearerAuth } from '@nestjs/swagger';
-
-// DTOs documentados con ejemplos y descripciones
-class RegisterDto {
-  @ApiProperty({ example: 'Javi', description: 'Nombre de usuario visible' })
-  userName: string;
-
-  @ApiProperty({ example: 'javi@mail.com', description: 'Correo electrónico del usuario' })
-  email: string;
-
-  @ApiProperty({ example: '123456', description: 'Contraseña del usuario' })
-  password: string;
-}
-
-class LoginDto {
-  @ApiProperty({ example: 'javi@mail.com' })
-  email: string;
-
-  @ApiProperty({ example: '123456' })
-  password: string;
-}
-
-class PasswordResetRequestDto {
-  @ApiProperty({ example: 'javi@mail.com', description: 'Correo para enviar el enlace de recuperación' })
-  email: string;
-}
-
-class PasswordResetDto {
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', description: 'Token de recuperación recibido por email' })
-  token: string;
-
-  @ApiProperty({ example: 'nuevaPassword123', description: 'Nueva contraseña del usuario' })
-  newPassword: string;
-}
-
-class RefreshDto {
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', description: 'Refresh token válido' })
-  refreshToken: string;
-}
-
-class LogoutDto {
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', description: 'Refresh token de la sesión actual' })
-  refreshToken: string;
-}
+import {
+  RegisterDto,
+  LoginDto,
+  PasswordResetRequestDto,
+  PasswordResetDto,
+  RefreshDto,
+  LogoutDto,
+} from './dto/auth.dto';
 
 // Controlador Auth documentado
 @ApiTags('auth') // Agrupación Swagger
