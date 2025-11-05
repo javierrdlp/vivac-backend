@@ -42,8 +42,8 @@ export class VivacPoint {
   @Column({ type: 'enum', enum: AccessDifficulty, default: AccessDifficulty.EASY })
   accessDifficulty: AccessDifficulty;
 
-  @Column({ type: 'enum', enum: Environment, nullable: true })
-  environment?: Environment;
+  @Column({ type: 'enum', enum: Environment, array: true, nullable: true, })
+  environment?: Environment[];
 
   @Column({ type: 'enum', enum: Privacity, nullable: true })
   privacity?: Privacity;

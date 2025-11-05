@@ -37,7 +37,8 @@ export class CreateVivacDto {
   accessDifficulty: AccessDifficulty;
 
   @IsOptional()
-  @IsEnum(Environment)
+  @IsEnum(Environment, { each: true })
+  @IsArray()
   environment?: Environment;
 
   @IsOptional()
