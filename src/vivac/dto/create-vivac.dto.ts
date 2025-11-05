@@ -39,7 +39,7 @@ export class CreateVivacDto {
   @IsOptional()
   @IsEnum(Environment, { each: true })
   @IsArray()
-  environment?: Environment;
+  environment?: Environment[];
 
   @IsOptional()
   @IsEnum(Privacity)
