@@ -9,11 +9,12 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { VivacService } from './vivac.service';
 import { CreateVivacDto } from './dto/create-vivac.dto';
 import { UpdateVivacDto } from './dto/update-vivac.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Query } from '@nestjs/common';
 
 @ApiTags('Vivacs')
 @ApiBearerAuth()
@@ -28,18 +29,28 @@ export class VivacController {
     return this.vivacService.create(dto, req.user.id);
   }
   
+  
   @Get()
-  @ApiOperation({ summary: 'Obtener todos los vivacs disponibles' })
-  findAll() {
-    return this.vivacService.findAll();
-  }
+  @ApiOperation({ summary: 'Listar vivacs con filtros opcionales (público)' })
+  @ApiQuery({ name: 'lat', required: false, example: 38.5, description: 'Latitud de referencia para filtro por zona' })
+  @ApiQuery({ name: 'lon', required: false, example: -0.4, description: 'Longitud de referencia para filtro por zona' })
+  @ApiQuery({ name: 'radius', required: false, example: 15, description: 'Radio de búsqueda en km (centrado en lat/lon)' })
+  //@ApiQuery({ name: 'environment', required: false, example: 'TREE_AREA,VIEWPOINT', description: 'Filtrar por entornos (valores del enum Environment, separados por coma)' })
+  @ApiQuery({ name: 'privacity', required: false, example: 'REMOTE', description: 'Filtrar por tipo de privacidad (valores del enum Privacity)' })
+  @ApiQuery({ name: 'accessDifficulty', required: false, example: 'MODERATE', description: 'Filtrar por dificultad de acceso (enum AccessDifficulty)' })
+  @ApiQuery({ name: 'minElevation', required: false, example: 400, description: 'Altitud mínima' })
+  @ApiQuery({ name: 'maxElevation', required: false, example: 1200, description: 'Altitud máxima' })
+  findAll(@Query() filters: any) {
+    return this.vivacService.findAll(filters);
+  } 
   
   @Get('/user/:userId')
   @ApiOperation({ summary: 'Obtener todos los vivacs creados por un usuario' })
   findByUser(@Param('userId') userId: string) {
     return this.vivacService.findByUser(userId);
   }
-  
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un vivac por su ID' })
   findOne(@Param('id') id: string) {
