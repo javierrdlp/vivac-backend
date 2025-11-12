@@ -3,10 +3,10 @@ import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'clo
 
 @Injectable()
 export class CloudinaryService {
-
-  async uploadImage(
+  // Subir una imagen (función interna reutilizable)
+  private async uploadSingleImage(
     file: Express.Multer.File,
-  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+  ): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -14,13 +14,9 @@ export class CloudinaryService {
           resource_type: 'auto',
         },
         (error?: UploadApiErrorResponse, result?: UploadApiResponse) => {
-          if (error) {
-            reject(error);
-          } else if (result) {
-            resolve(result);
-          } else {
-            reject(new Error('Upload failed: no result returned.'));
-          }
+          if (error) return reject(error);
+          if (!result) return reject(new Error('Upload failed: no result returned.'));
+          resolve(result);
         },
       );
 
@@ -28,7 +24,20 @@ export class CloudinaryService {
     });
   }
 
-  async deleteImage(publicId: string): Promise<any> {
+  // Subir una o varias imágenes
+  async uploadImages(files: Express.Multer.File[]): Promise<UploadApiResponse[]> {
+    const results: UploadApiResponse[] = [];
+
+    for (const file of files) {
+      const result = await this.uploadSingleImage(file);
+      results.push(result);
+    }
+
+    return results;
+  }
+
+  // Eliminar una imagen (función interna)
+  private async deleteSingleImage(publicId: string): Promise<any> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(publicId, (error, result) => {
         if (error) return reject(error);
@@ -37,5 +46,17 @@ export class CloudinaryService {
     });
   }
 
+  // Eliminar una o varias imágenes
+  async deleteImages(publicIds: string[]): Promise<any[]> {
+    const results: any[] = [];
+
+    for (const id of publicIds) {
+      const result = await this.deleteSingleImage(id);
+      results.push(result);
+    }
+
+    return results;
+  }
 }
+
 

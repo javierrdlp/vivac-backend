@@ -4,6 +4,7 @@ import {
   IsString,
   IsNotEmpty,
   Matches,
+  MinLength
 } from 'class-validator';
 
 // DTO para registro
@@ -41,10 +42,8 @@ export class LoginDto {
 
   @ApiProperty({ example: 'Password@123' })
   @IsString()
-  @Matches(/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/, {
-    message:
-      'La contraseña debe tener al menos 8 caracteres, una mayúscula y un símbolo.',
-  })
+  @IsNotEmpty({ message: 'La contraseña es obligatoria' })
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   password: string;
 }
 
@@ -74,7 +73,7 @@ export class PasswordResetDto {
       'Nueva contraseña del usuario (mínimo 8 caracteres, una mayúscula y un símbolo)',
   })
   @IsString()
-  @Matches(/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/, {
+  @Matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/, {
     message:
       'La contraseña debe tener al menos 8 caracteres, una mayúscula y un símbolo.',
   })

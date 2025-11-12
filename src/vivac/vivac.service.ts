@@ -13,7 +13,7 @@ export class VivacService {
     private vivacRepository: Repository<VivacPoint>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   // Crear vivac
   async create(dto: CreateVivacDto, userId: string): Promise<VivacPoint> {
@@ -93,8 +93,8 @@ export class VivacService {
     const a =
       Math.sin(dLat / 2) ** 2 +
       Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) ** 2;
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -140,8 +140,8 @@ export class VivacService {
     });
   }
 
-  // Añadir foto — solo el creador puede hacerlo
-  async addPhoto(vivacId: string, photoUrl: string, userId: string): Promise<VivacPoint> {
+  // Añadir una o varias fotos — solo el creador puede hacerlo
+  async addPhotos(vivacId: string, photoUrls: string[], userId: string): Promise<VivacPoint> {
     const vivac = await this.vivacRepository.findOne({
       where: { id: vivacId },
       relations: ['createdBy'],
@@ -152,12 +152,13 @@ export class VivacService {
       throw new ForbiddenException('No tienes permiso para añadir fotos a este vivac');
     }
 
-    vivac.photoUrls = vivac.photoUrls ? [...vivac.photoUrls, photoUrl] : [photoUrl];
+    // Si el vivac ya tiene fotos, añade las nuevas; si no, inicializa el array
+    vivac.photoUrls = [...(vivac.photoUrls || []), ...photoUrls];
     return await this.vivacRepository.save(vivac);
   }
 
-  // Eliminar foto — solo el creador puede hacerlo
-  async removePhoto(vivacId: string, imageUrl: string, userId: string): Promise<VivacPoint> {
+  // Eliminar una o varias fotos — solo el creador puede hacerlo
+  async removePhotos(vivacId: string, imageUrls: string[], userId: string): Promise<VivacPoint> {
     const vivac = await this.vivacRepository.findOne({
       where: { id: vivacId },
       relations: ['createdBy'],
@@ -168,12 +169,15 @@ export class VivacService {
       throw new ForbiddenException('No tienes permiso para eliminar fotos de este vivac');
     }
 
-    if (!vivac.photoUrls || !vivac.photoUrls.includes(imageUrl)) {
-      throw new NotFoundException('Image not found in vivac');
+    if (!vivac.photoUrls || vivac.photoUrls.length === 0) {
+      throw new NotFoundException('El vivac no tiene fotos registradas');
     }
 
-    vivac.photoUrls = vivac.photoUrls.filter(url => url !== imageUrl);
+    // Filtramos las URLs que no están en el array de eliminadas
+    vivac.photoUrls = vivac.photoUrls.filter(url => !imageUrls.includes(url));
+
     return await this.vivacRepository.save(vivac);
   }
+
 }
 
