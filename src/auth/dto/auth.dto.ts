@@ -2,8 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsString,
-  MinLength,
   IsNotEmpty,
+  Matches,
+  MinLength
 } from 'class-validator';
 
 // DTO para registro
@@ -13,16 +14,23 @@ export class RegisterDto {
   @IsNotEmpty({ message: 'El nombre de usuario es obligatorio' })
   userName: string;
 
-  @ApiProperty({ example: 'javi@mail.com', description: 'Correo electrónico del usuario' })
+  @ApiProperty({
+    example: 'javi@mail.com',
+    description: 'Correo electrónico del usuario',
+  })
   @IsEmail({}, { message: 'Debe ser un correo válido' })
   email: string;
 
   @ApiProperty({
-    example: '12345678',
-    description: 'Contraseña del usuario (mínimo 8 caracteres)',
+    example: 'Password@123',
+    description:
+      'Contraseña del usuario (mínimo 8 caracteres, una mayúscula y un símbolo)',
   })
   @IsString()
-  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @Matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/, {
+    message:
+      'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo.',
+  })
   password: string;
 }
 
@@ -32,8 +40,9 @@ export class LoginDto {
   @IsEmail({}, { message: 'Debe ser un correo válido' })
   email: string;
 
-  @ApiProperty({ example: '12345678' })
+  @ApiProperty({ example: 'Password@123' })
   @IsString()
+  @IsNotEmpty({ message: 'La contraseña es obligatoria' })
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   password: string;
 }
@@ -59,11 +68,15 @@ export class PasswordResetDto {
   token: string;
 
   @ApiProperty({
-    example: 'nuevaPassword123',
-    description: 'Nueva contraseña del usuario (mínimo 8 caracteres)',
+    example: 'NuevaPass@123',
+    description:
+      'Nueva contraseña del usuario (mínimo 8 caracteres, una mayúscula y un símbolo)',
   })
   @IsString()
-  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @Matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/, {
+    message:
+      'La contraseña debe tener al menos 8 caracteres, una mayúscula y un símbolo.',
+  })
   newPassword: string;
 }
 

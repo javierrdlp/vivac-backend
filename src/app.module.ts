@@ -15,6 +15,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { resolve } from 'path';
 import { VivacModule } from './vivac/vivac.module';
+import { ImageModule } from './image/image.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { VivacModule } from './vivac/vivac.module';
     ]),
     AuthModule,
     VivacModule,
+    ImageModule,
+    CloudinaryModule
   ],
   controllers: [AppController],
   providers: [AppService],
