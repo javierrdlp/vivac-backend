@@ -17,6 +17,7 @@ import { resolve } from 'path';
 import { VivacModule } from './vivac/vivac.module';
 import { ImageModule } from './image/image.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -46,7 +47,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     AuthModule,
     VivacModule,
     ImageModule,
-    CloudinaryModule
+    CloudinaryModule,
+    UserModule
   ],
   controllers: [AppController],
   providers: [AppService],

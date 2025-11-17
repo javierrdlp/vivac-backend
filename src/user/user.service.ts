@@ -1,0 +1,73 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { VivacPoint } from 'src/entities/vivac-point.entity';
+
+@Injectable()
+export class UserService {
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepo: Repository<User>,
+        @InjectRepository(VivacPoint)
+        private readonly vivacRepo: Repository<VivacPoint>,
+    ) { }
+
+    async findById(id: string, includePrivate = false) {
+        const user = await this.userRepo.findOne({
+            where: { id },
+            select: includePrivate
+                ? undefined // devuelve todo menos passwordHash
+                : ['id', 'userName', 'avatarUrl', 'description', 'userExperience', 'createdAt'],
+        });
+
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+        return user;
+    }
+
+    async update(id: string, dto: UpdateUserDto) {
+        await this.userRepo.update({ id }, dto);
+        return this.findById(id, true);
+    }
+
+    async delete(id: string) {
+        // Verificar si tiene vivacs creados
+        const vivacs = await this.vivacRepo.count({
+            where: { createdBy: { id } },
+        });
+
+        if (vivacs > 0) {
+            throw new BadRequestException(
+                'No puedes borrar tu cuenta porque tienes vivacs creados.',
+            );
+        }
+
+        // Borrar usuario
+        await this.userRepo.delete(id);
+
+        return { message: 'Cuenta eliminada correctamente' };
+    }
+
+    async getPublicProfile(id: string) {
+        const user = await this.userRepo.findOne({
+            where: { id },
+            select: [
+                'id',
+                'userName',
+                'avatarUrl',
+                'description',
+                'userExperience',
+                'xpPoints',
+                'vivacsCreated',
+                'reviewsWritten',
+                'createdAt',
+            ],
+        });
+
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+
+        return user;
+    }
+
+}
