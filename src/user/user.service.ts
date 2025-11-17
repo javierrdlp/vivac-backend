@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { VivacPoint } from 'src/entities/vivac-point.entity';
@@ -69,5 +69,39 @@ export class UserService {
 
         return user;
     }
+
+    async getMyRanking(userId: string) {
+        // 1. Usuario actual
+        const user = await this.userRepo.findOne({ where: { id: userId } });
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+        
+        const usersAbove = await this.userRepo.count({
+            where: { xpPoints: MoreThan(user.xpPoints) },
+        });
+
+        const position = usersAbove + 1;
+        
+        const top100 = await this.userRepo.find({
+            order: { xpPoints: 'DESC' },
+            take: 100,
+            select: [
+                'id',
+                'userName',
+                'avatarUrl',
+                'userExperience',
+                'xpPoints',
+                'vivacsCreated',
+                'reviewsWritten',
+            ],
+        });
+
+        return {
+            position,
+            userXp: user.xpPoints,
+            top100,
+        };
+    }
+
+
 
 }
