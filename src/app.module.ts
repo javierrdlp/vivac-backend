@@ -18,6 +18,7 @@ import { VivacModule } from './vivac/vivac.module';
 import { ImageModule } from './image/image.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './user/user.module';
+import { RatingModule } from './rating/rating.module';
 
 @Module({
   imports: [
@@ -48,7 +49,8 @@ import { UserModule } from './user/user.module';
     VivacModule,
     ImageModule,
     CloudinaryModule,
-    UserModule
+    UserModule,
+    RatingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

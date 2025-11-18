@@ -21,13 +21,15 @@ export class RatingService {
   ) {}
 
   async create(userId: string, dto: CreateRatingDto) {
-    const vivac = await this.vivacRepo.findOne({ where: { id: dto.vivacId } });
+    // Comprobar que el vivac existe
+    const vivac = await this.vivacRepo.findOne({ where: { id: dto.vivacPointId } });
     if (!vivac) throw new NotFoundException('Vivac no encontrado');
 
+    // Comprobar si ya existe una reseña del mismo usuario para este vivac
     const existing = await this.ratingRepo.findOne({
       where: {
-        user: { id: userId },
-        vivacPoint: { id: dto.vivacId },
+        userId: userId,
+        vivacPointId: dto.vivacPointId,
       },
     });
 
@@ -35,17 +37,25 @@ export class RatingService {
       throw new BadRequestException('Ya has valorado este vivac');
     }
 
+    // Crear reseña
     const rating = this.ratingRepo.create({
       rating: dto.rating,
       comment: dto.comment,
-      user: { id: userId },
-      vivacPoint: { id: dto.vivacId },
+      userId: userId,
+      vivacPointId: dto.vivacPointId,
     });
 
     await this.ratingRepo.save(rating);
 
+    // Incrementar contador de reseñas del vivac
+    await this.vivacRepo.increment(
+      { id: dto.vivacPointId },
+      'reviewCount',
+      1,
+    );
+
     // Recalcular media
-    await this.updateVivacAverage(dto.vivacId);
+    await this.updateVivacAverage(dto.vivacPointId);
 
     // Actualizar contador de reseñas del usuario
     await this.userRepo.increment({ id: userId }, 'reviewsWritten', 1);
@@ -56,16 +66,16 @@ export class RatingService {
   async update(userId: string, id: string, dto: UpdateRatingDto) {
     const rating = await this.ratingRepo.findOne({
       where: { id },
-      relations: ['user'],
     });
 
     if (!rating) throw new NotFoundException('Reseña no encontrada');
-    if (rating.user.id !== userId) throw new BadRequestException('No puedes editar esta reseña');
+    if (rating.userId !== userId)
+      throw new BadRequestException('No puedes editar esta reseña');
 
     Object.assign(rating, dto);
     await this.ratingRepo.save(rating);
 
-    await this.updateVivacAverage(rating.vivacPoint.id);
+    await this.updateVivacAverage(rating.vivacPointId);
 
     return rating;
   }
@@ -73,23 +83,31 @@ export class RatingService {
   async delete(userId: string, id: string) {
     const rating = await this.ratingRepo.findOne({
       where: { id },
-      relations: ['user', 'vivacPoint'],
     });
 
     if (!rating) throw new NotFoundException('Reseña no encontrada');
-    if (rating.user.id !== userId) throw new BadRequestException('No puedes borrar esta reseña');
+    if (rating.userId !== userId)
+      throw new BadRequestException('No puedes borrar esta reseña');
 
     await this.ratingRepo.remove(rating);
 
-    await this.updateVivacAverage(rating.vivacPoint.id);
+    // Decrementar contador del vivac
+    await this.vivacRepo.decrement(
+      { id: rating.vivacPointId },
+      'reviewCount',
+      1,
+    );
+
+    await this.updateVivacAverage(rating.vivacPointId);
+
     await this.userRepo.decrement({ id: userId }, 'reviewsWritten', 1);
 
     return { message: 'Reseña eliminada' };
   }
 
-  async getReviewsForVivac(vivacId: string) {
+  async getReviewsForVivac(vivacPointId: string) {
     return this.ratingRepo.find({
-      where: { vivacPoint: { id: vivacId } },
+      where: { vivacPointId },
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
@@ -97,19 +115,22 @@ export class RatingService {
 
   async getReviewsByUser(userId: string) {
     return this.ratingRepo.find({
-      where: { user: { id: userId } },
+      where: { userId },
       relations: ['vivacPoint'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  private async updateVivacAverage(vivacId: string) {
+  private async updateVivacAverage(vivacPointId: string) {
     const ratings = await this.ratingRepo.find({
-      where: { vivacPoint: { id: vivacId } },
+      where: { vivacPointId },
     });
 
-    const avg = ratings.length ? ratings.reduce((a, b) => a + b.rating, 0) / ratings.length : 0;
+    const avg =
+      ratings.length > 0
+        ? ratings.reduce((a, b) => a + b.rating, 0) / ratings.length
+        : 0;
 
-    await this.vivacRepo.update({ id: vivacId }, { avgRating: avg });
+    await this.vivacRepo.update({ id: vivacPointId }, { avgRating: avg });
   }
 }

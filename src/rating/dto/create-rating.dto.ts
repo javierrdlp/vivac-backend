@@ -14,5 +14,7 @@ export class CreateRatingDto {
   comment?: string;
 
   @ApiProperty({ example: 'uuid-del-vivac' })
-  vivacId: string;
+  @IsString()
+  vivacPointId: string;
+
 }
