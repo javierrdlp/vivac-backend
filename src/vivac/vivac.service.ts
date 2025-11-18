@@ -178,6 +178,6 @@ export class VivacService {
 
     return await this.vivacRepository.save(vivac);
   }
-
+  
 }
 

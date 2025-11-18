@@ -121,7 +121,7 @@ export class AuthService {
       accessToken,
       refreshToken,
       tokenType: 'Bearer',
-      expiresIn: 900, // 15 minutos
+      expiresIn: 14400, // 4 horas
     };
   }
 
