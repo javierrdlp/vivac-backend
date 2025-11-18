@@ -263,7 +263,7 @@ const formData = new FormData();
 formData.append("files", file1);
 formData.append("files", file2);
 
-fetch("https://tu-api.com/vivacs/{id}/upload-photos", {
+fetch("https://vivac-backend-production.up.railway.app/vivacs/{id}/upload-photos", {
   method: "POST",
   headers: {
     Authorization: "Bearer TOKEN_AQUI"
