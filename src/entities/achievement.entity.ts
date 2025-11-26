@@ -20,7 +20,7 @@ export class Achievement {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ nullable: true, length: 2048 })
+  @Column({ type: 'text', nullable: true })
   iconUrl?: string | null;
 
   @Column({ type: 'int', default: 0 })

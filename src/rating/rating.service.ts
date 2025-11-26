@@ -19,7 +19,6 @@ export class RatingService {
 
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-
     private readonly achievementService: AchievementService,
   ) {}
 

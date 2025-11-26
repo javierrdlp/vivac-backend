@@ -20,6 +20,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './user/user.module';
 import { RatingModule } from './rating/rating.module';
 import { WeatherModule } from './weather/weather.module';
+import { AchievementSeeder } from './achievements/achievement.seed';
 
 @Module({
   imports: [
@@ -52,7 +53,7 @@ import { WeatherModule } from './weather/weather.module';
     CloudinaryModule,
     UserModule,
     RatingModule,
-    WeatherModule,
+    WeatherModule
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -64,5 +65,6 @@ export class AppModule {
   console.log('MAIL_USER =>', process.env.MAIL_USER);
   }
 }
+
 
 
