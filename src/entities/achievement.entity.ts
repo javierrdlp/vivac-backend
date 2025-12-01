@@ -15,16 +15,16 @@ export class Achievement {
   id: string;
 
   @Column({ length: 100 })
-  name: string; 
+  name: string;
 
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ nullable: true, length: 2048 })
-  iconUrl?: string; 
+  @Column({ type: 'text', nullable: true })
+  iconUrl?: string | null;
 
   @Column({ type: 'int', default: 0 })
-  xpReward: number; 
+  xpReward: number;
 
   @CreateDateColumn()
   createdAt: Date;

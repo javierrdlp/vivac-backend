@@ -13,28 +13,37 @@ import { UserAchievement } from './entities/user-achievement.entity';
 import { Achievement } from './entities/achievement.entity';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import { VivacModule } from './vivac/vivac.module';
 import { ImageModule } from './image/image.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './user/user.module';
 import { RatingModule } from './rating/rating.module';
 import { WeatherModule } from './weather/weather.module';
+import { AchievementSeeder } from './achievements/achievement.seed';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: resolve(__dirname, '..', '.env'), 
+      envFilePath: resolve(__dirname, '..', '.env'),
     }),
+    
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
+
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      synchronize: true, // dejar activado solo durante desarrollo
+      synchronize: true,
       schema: 'public',
       ssl: { rejectUnauthorized: false },
-      autoLoadEntities: true, // detecta entidades usadas en los módulos
-    }),    
+      autoLoadEntities: true,
+    }),
+
     TypeOrmModule.forFeature([
       User,
       VivacPoint,
@@ -46,6 +55,7 @@ import { WeatherModule } from './weather/weather.module';
       UserAchievement,
       Achievement,
     ]),
+
     AuthModule,
     VivacModule,
     ImageModule,
@@ -54,15 +64,12 @@ import { WeatherModule } from './weather/weather.module';
     RatingModule,
     WeatherModule,
   ],
+
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {
-  constructor(){
-  console.log('Current directory:', __dirname);
-  console.log('JWT_SECRET =>', process.env.JWT_SECRET);
-  console.log('MAIL_USER =>', process.env.MAIL_USER);
-  }
-}
+export class AppModule {}
+
+
 
 

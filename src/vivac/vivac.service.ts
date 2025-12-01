@@ -5,15 +5,19 @@ import { VivacPoint } from '../entities/vivac-point.entity';
 import { CreateVivacDto } from './dto/create-vivac.dto';
 import { UpdateVivacDto } from './dto/update-vivac.dto';
 import { User } from '../entities/user.entity';
+import { AchievementService } from '../achievements/achievement.service';
 
 @Injectable()
 export class VivacService {
   constructor(
     @InjectRepository(VivacPoint)
     private vivacRepository: Repository<VivacPoint>,
+
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) { }
+
+    private readonly achievementService: AchievementService,
+  ) {}
 
   // Crear vivac
   async create(dto: CreateVivacDto, userId: string): Promise<VivacPoint> {
@@ -24,7 +28,29 @@ export class VivacService {
       ...dto,
       createdBy: user,
     });
-    return await this.vivacRepository.save(vivac);
+
+    await this.vivacRepository.save(vivac);
+
+    // contador de vivacs creados
+    user.vivacsCreated = (user.vivacsCreated || 0) + 1;
+
+    // xp base por crear un vivac
+    const XP_POR_VIVAC = 5;
+    user.xpPoints += XP_POR_VIVAC;
+
+    await this.userRepository.save(user);
+
+    // logros de vivacs creados
+    await this.achievementService.unlockAchievement(user.id, 'Primer Vivac');
+
+    if (user.vivacsCreated >= 5)   await this.achievementService.unlockAchievement(user.id, '5 Vivacs');
+    if (user.vivacsCreated >= 25)  await this.achievementService.unlockAchievement(user.id, '25 Vivacs');
+    if (user.vivacsCreated >= 50)  await this.achievementService.unlockAchievement(user.id, '50 Vivacs');
+    if (user.vivacsCreated >= 100) await this.achievementService.unlockAchievement(user.id, '100 Vivacs');
+    if (user.vivacsCreated >= 150) await this.achievementService.unlockAchievement(user.id, '150 Vivacs');
+    if (user.vivacsCreated >= 200) await this.achievementService.unlockAchievement(user.id, '200 Vivacs');
+
+    return vivac;
   }
 
   // Buscar vivacs con filtros
@@ -129,7 +155,21 @@ export class VivacService {
       throw new ForbiddenException('No tienes permiso para eliminar este vivac');
     }
 
+    // borrar vivac
     await this.vivacRepository.remove(vivac);
+
+    // actualizar contador y xp del usuario
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // bajar contador
+    user.vivacsCreated = Math.max(0, (user.vivacsCreated || 0) - 1);
+
+    // restar xp base del vivac eliminado
+    const XP_POR_VIVAC = 5;
+    user.xpPoints = Math.max(0, user.xpPoints - XP_POR_VIVAC);
+
+    await this.userRepository.save(user);
   }
 
   // Vivacs creados por usuario
@@ -152,7 +192,6 @@ export class VivacService {
       throw new ForbiddenException('No tienes permiso para añadir fotos a este vivac');
     }
 
-    // Si el vivac ya tiene fotos, añade las nuevas; si no, inicializa el array
     vivac.photoUrls = [...(vivac.photoUrls || []), ...photoUrls];
     return await this.vivacRepository.save(vivac);
   }
@@ -173,11 +212,8 @@ export class VivacService {
       throw new NotFoundException('El vivac no tiene fotos registradas');
     }
 
-    // Filtramos las URLs que no están en el array de eliminadas
     vivac.photoUrls = vivac.photoUrls.filter(url => !imageUrls.includes(url));
 
     return await this.vivacRepository.save(vivac);
   }
-  
 }
-

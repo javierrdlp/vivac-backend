@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RankingResponseDto } from './dto/ranking-response.dto';
+import { SelectAvatarDto } from './dto/select-avatar.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -34,12 +35,6 @@ export class UserController {
         return this.userService.delete(req.user.id);
     }
 
-    @ApiOperation({ summary: 'Obtener el perfil público de un usuario' })
-    @Get(':id')
-    getPublicProfile(@Param('id') id: string) {
-        return this.userService.getPublicProfile(id);
-    }
-
     @ApiOperation({
         summary: 'Obtener tu posición en el ranking global y el Top 100',
         description:
@@ -53,5 +48,39 @@ export class UserController {
         return this.userService.getMyRanking(req.user.id);
     }
 
+    @ApiOperation({
+        summary: 'Seleccionar un avatar',
+        description:
+            'Permite al usuario autenticado elegir uno de los avatares disponibles en la galería cerrada.',
+    })
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiResponse({
+        status: 200,
+        description: 'Avatar actualizado correctamente. Devuelve el perfil del usuario.',
+    })
+    @Patch('me/avatar')
+    selectAvatar(@Request() req, @Body() dto: SelectAvatarDto) {
+        return this.userService.selectAvatar(req.user.id, dto.avatar);
+    }
+
+
+    @ApiOperation({
+        summary: 'Obtener lista de avatares disponibles',
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Lista de avatares disponibles',
+    })
+    @Get('avatars')
+    getAvatars() {
+        return this.userService.getAvailableAvatars();
+    }
+
+    @ApiOperation({ summary: 'Obtener el perfil público de un usuario' })
+    @Get(':id')
+    getPublicProfile(@Param('id') id: string) {
+        return this.userService.getPublicProfile(id);
+    }
 
 }
