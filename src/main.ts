@@ -12,11 +12,11 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true, // quita propiedades no definidas en los DTOs
       forbidNonWhitelisted: true, // lanza error si se envía algo no permitido
-      transform: true, // transforma tipos automáticamente (por ej. strings a numbers)
+      transform: true, // transforma tipos automáticamente 
     }),
   );
 
-  // Configuración Swagger (documentación API)
+  // Configuración Swagger
   const config = new DocumentBuilder()
     .setTitle('Vivac API')
     .setDescription('Documentación de la API de VivacApp (entorno desarrollo)')
