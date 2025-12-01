@@ -4,6 +4,9 @@ import { Repository, MoreThan } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { VivacPoint } from 'src/entities/vivac-point.entity';
+import { readdirSync } from 'fs';
+import { join } from 'path';
+
 
 @Injectable()
 export class UserService {
@@ -71,16 +74,16 @@ export class UserService {
     }
 
     async getMyRanking(userId: string) {
-        // 1. Usuario actual
+        // Usuario actual
         const user = await this.userRepo.findOne({ where: { id: userId } });
         if (!user) throw new NotFoundException('Usuario no encontrado');
-        
+
         const usersAbove = await this.userRepo.count({
             where: { xpPoints: MoreThan(user.xpPoints) },
         });
 
         const position = usersAbove + 1;
-        
+
         const top100 = await this.userRepo.find({
             order: { xpPoints: 'DESC' },
             take: 100,
@@ -102,6 +105,28 @@ export class UserService {
         };
     }
 
+    getAvailableAvatars() {
+        const avatarsPath = join(process.cwd(), 'uploads', 'avatars');
+        const files = readdirSync(avatarsPath);
 
+        return files.map(file => ({
+            name: file,
+            url: `/uploads/avatars/${file}`,
+        }));
+    }
+
+    async selectAvatar(userId: string, avatar: string) {        
+        const validAvatars = this.getAvailableAvatars().map(a => a.name);
+        
+        if (!validAvatars.includes(avatar)) {
+            throw new BadRequestException('Avatar no válido.');
+        }
+        
+        await this.userRepo.update(userId, {
+            avatarUrl: `/uploads/avatars/${avatar}`,
+        });
+        
+        return this.findById(userId, true);
+    }
 
 }
