@@ -6,6 +6,7 @@ import { CreateVivacDto } from './dto/create-vivac.dto';
 import { UpdateVivacDto } from './dto/update-vivac.dto';
 import { User } from '../entities/user.entity';
 import { AchievementService } from '../achievements/achievement.service';
+import { UserFollowService } from 'src/user-follow/user-follow.service';
 
 @Injectable()
 export class VivacService {
@@ -17,7 +18,9 @@ export class VivacService {
     private userRepository: Repository<User>,
 
     private readonly achievementService: AchievementService,
-  ) {}
+
+    private readonly userFollowService: UserFollowService,
+  ) { }
 
   // Crear vivac
   async create(dto: CreateVivacDto, userId: string): Promise<VivacPoint> {
@@ -43,9 +46,9 @@ export class VivacService {
     // logros de vivacs creados
     await this.achievementService.unlockAchievement(user.id, 'Primer Vivac');
 
-    if (user.vivacsCreated >= 5)   await this.achievementService.unlockAchievement(user.id, '5 Vivacs');
-    if (user.vivacsCreated >= 25)  await this.achievementService.unlockAchievement(user.id, '25 Vivacs');
-    if (user.vivacsCreated >= 50)  await this.achievementService.unlockAchievement(user.id, '50 Vivacs');
+    if (user.vivacsCreated >= 5) await this.achievementService.unlockAchievement(user.id, '5 Vivacs');
+    if (user.vivacsCreated >= 25) await this.achievementService.unlockAchievement(user.id, '25 Vivacs');
+    if (user.vivacsCreated >= 50) await this.achievementService.unlockAchievement(user.id, '50 Vivacs');
     if (user.vivacsCreated >= 100) await this.achievementService.unlockAchievement(user.id, '100 Vivacs');
     if (user.vivacsCreated >= 150) await this.achievementService.unlockAchievement(user.id, '150 Vivacs');
     if (user.vivacsCreated >= 200) await this.achievementService.unlockAchievement(user.id, '200 Vivacs');
@@ -126,13 +129,30 @@ export class VivacService {
   }
 
   // Obtener un vivac
-  async findOne(id: string): Promise<VivacPoint> {
+  async findOne(id: string, currentUserId?: string): Promise<any> {
     const vivac = await this.vivacRepository.findOne({
       where: { id },
       relations: ['createdBy', 'ratings'],
     });
+
     if (!vivac) throw new NotFoundException('Vivac not found');
-    return vivac;
+
+    // Follow status del creador
+    const isFollowed =
+      currentUserId
+        ? await this.userFollowService.isFollowedByCurrentUser(
+          currentUserId,
+          vivac.createdBy.id
+        )
+        : false;
+
+    return {
+      ...vivac,
+      createdBy: {
+        ...vivac.createdBy,
+        isFollowedByCurrentUser: isFollowed,
+      },
+    };
   }
 
   // Actualizar — solo el creador puede hacerlo
