@@ -4,9 +4,13 @@ import { User } from '../entities/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { VivacPoint } from 'src/entities/vivac-point.entity';
+import { UserFollowModule } from '../user-follow/user-follow.module';
+
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, VivacPoint])],
+    imports: [TypeOrmModule.forFeature([User, VivacPoint]),
+    UserFollowModule,
+],
     controllers: [UserController],
     providers: [UserService],
     exports: [UserService],
