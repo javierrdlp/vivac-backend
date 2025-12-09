@@ -14,9 +14,12 @@ import { randomBytes } from 'crypto';
 import { addMinutes } from 'date-fns';
 import { SessionService } from './services/session.service';
 import { Request } from 'express';
+import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class AuthService {
+  private googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
   constructor(
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>,
@@ -27,33 +30,24 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly mailService: MailService,
     private readonly sessionService: SessionService,
-  ) {}
+  ) { }
 
-  // -------------------------
-  // Registro de nuevo usuario
-  // -------------------------
+  // Registro normal
   async register(userName: string, email: string, password: string) {
     console.log('🧩 Registro de usuario:', { userName, email });
 
-    // Comprobamos si ya existe un usuario con ese email o username
     const existing = await this.usersRepo.findOne({
       where: [{ email }, { userName }],
     });
 
     if (existing) {
-      if (existing.email === email) {
-        throw new UnauthorizedException('Email already registered');
-      }
-      if (existing.userName === userName) {
-        throw new UnauthorizedException('Username already taken');
-      }
+      if (existing.email === email) throw new UnauthorizedException('Email already registered');
+      if (existing.userName === userName) throw new UnauthorizedException('Username already taken');
     }
 
-    // Hasheamos la contraseña antes de guardarla
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log('🔐 Hash generado:', hashedPassword);
 
-    // Creamos el nuevo usuario
     const user = this.usersRepo.create({
       userName,
       email,
@@ -61,9 +55,8 @@ export class AuthService {
     });
 
     await this.usersRepo.save(user);
-    console.log('✅ Usuario guardado en la base de datos:', user.email);
+    console.log('✅ Usuario guardado en DB:', user.email);
 
-    // Generamos un access token (solo acceso rápido)
     const accessToken = this.jwt.sign({ sub: user.id, email: user.email });
 
     return {
@@ -76,36 +69,31 @@ export class AuthService {
     };
   }
 
-  // -------------------------
-  // Login de usuario existente
-  // -------------------------
+  // Login normal
   async login(email: string, password: string, req: Request) {
     console.log('📩 Intento de login:', { email });
 
-    // Buscamos el usuario incluyendo el hash de la contraseña
     const user = await this.usersRepo
       .createQueryBuilder('user')
       .addSelect('user.passwordHash')
       .where('user.email = :email', { email })
       .getOne();
 
-    if (!user) {
-      console.log('⚠️ Usuario no encontrado');
-      throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('User not found');
+
+    // Si es cuenta Google, no puede loguear con contraseña
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        'This account uses Google login. Please sign in with Google.'
+      );
     }
 
-    // Comprobamos la contraseña
     const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) {
-      console.log('🚫 Contraseña incorrecta');
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    // Si la contraseña es válida, generamos tokens
     const accessToken = this.generateAccessToken(user);
     const refreshToken = this.generateRefreshToken();
 
-    // Guardamos la sesión en la base de datos
     await this.sessionService.createSession({
       user,
       refreshToken,
@@ -115,36 +103,127 @@ export class AuthService {
 
     console.log('✅ Login correcto, sesión creada en DB');
 
-    // Devolvemos ambos tokens
     return {
       user: { id: user.id, userName: user.userName, email },
       accessToken,
       refreshToken,
       tokenType: 'Bearer',
-      expiresIn: 14400, // 4 horas
+      expiresIn: 14400,
     };
   }
 
-  // -------------------------
-  // Refrescar el access token
-  // -------------------------
-  async refresh(refreshToken: string) {
-    // Buscamos la sesión en la base de datos
-    const session = await this.sessionService.findValidByToken(refreshToken);
-    if (!session) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+
+  // GOOGLE: 1) Verificar token con Google  
+  private async verifyGoogleToken(idToken: string) {
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      return ticket.getPayload();
+    } catch (err) {
+      console.error('❌ Error verificando token Google', err);
+      throw new UnauthorizedException('Invalid Google token');
     }
+  }
+
+  // GOOGLE: 2) Buscar usuario o crearlo
+  private async findOrCreateGoogleUser(payload: any): Promise<User> {
+    const { sub: googleId, email, name, picture } = payload;
+
+    // Buscar por googleId
+    let user = await this.usersRepo.findOne({ where: { googleId } });
+
+    // Buscar por email si no tenemos googleId 
+    if (!user && email) {
+      user = await this.usersRepo.findOne({ where: { email } });
+    }
+
+    if (!user) {
+      // Crear usuario 
+      user = this.usersRepo.create({
+        googleId, 
+        email,
+        userName: name ?? email.split('@')[0],
+        avatarUrl: picture,
+        
+      });
+
+      user = await this.usersRepo.save(user);
+      console.log('🆕 Usuario creado vía Google:', user.email);
+    } else {
+      // Actualizar googleId/imagen si hace falta
+      let updated = false;
+
+      if (!user.googleId && googleId) {
+        user.googleId = googleId;
+        updated = true;
+      }
+
+      if (picture && user.avatarUrl !== picture) {
+        user.avatarUrl = picture;
+        updated = true;
+      }
+
+      if (updated) {
+        await this.usersRepo.save(user);
+      }
+
+      console.log('ℹ️ Usuario Google encontrado:', user.email);
+    }
+
+    return user;
+  }
+  // GOOGLE: 3) Login final con sesiones  
+  async googleLogin(idToken: string, req: Request) {
+    console.log('🔐 Intento de login con Google');
+
+    const payload = await this.verifyGoogleToken(idToken);
+
+    if (!payload || !payload.email) {
+      throw new UnauthorizedException('Google token invalid: no email');
+    }
+
+    const user = await this.findOrCreateGoogleUser(payload);
+
+    const accessToken = this.generateAccessToken(user);
+    const refreshToken = this.generateRefreshToken();
+
+    await this.sessionService.createSession({
+      user,
+      refreshToken,
+      ipAddress: (req as any).ip,
+      userAgent: req.headers['user-agent'] || 'unknown',
+    });
+
+    console.log('✅ Login Google exitoso');
+
+    return {
+      user: {
+        id: user.id,
+        userName: user.userName,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      },
+      accessToken,
+      refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: 14400,
+    };
+  }
+
+  // Refresh token
+  async refresh(refreshToken: string) {
+    const session = await this.sessionService.findValidByToken(refreshToken);
+    if (!session) throw new UnauthorizedException('Invalid or expired refresh token');
 
     const user = session.user;
 
-    // Rotamos el refresh token por seguridad
     const newRefresh = this.generateRefreshToken();
 
     await this.sessionService.revokeByToken(refreshToken);
-    await this.sessionService.createSession({
-      user,
-      refreshToken: newRefresh,
-    });
+    await this.sessionService.createSession({ user, refreshToken: newRefresh });
 
     const accessToken = this.generateAccessToken(user);
 
@@ -156,20 +235,16 @@ export class AuthService {
     };
   }
 
-  // -------------------------
-  // Logout: cerrar sesión
-  // -------------------------
+  // Logout
   async logout(refreshToken: string) {
     await this.sessionService.revokeByToken(refreshToken);
-    console.log('🚪 Sesión revocada correctamente');
+    console.log('🚪 Sesión revocada');
     return { success: true };
   }
 
-  // -------------------------
-  // Solicitud de reseteo de contraseña
-  // -------------------------
+  // Reset password request
   async requestPasswordReset(email: string) {
-    console.log('📩 Solicitud de reseteo de contraseña para:', email);
+    console.log('📩 Solicitud reset password:', email);
 
     const user = await this.usersRepo.findOne({ where: { email } });
     if (!user) throw new NotFoundException('User not found');
@@ -177,24 +252,18 @@ export class AuthService {
     const token = randomBytes(32).toString('hex');
     const expiresAt = addMinutes(new Date(), 15);
 
-    const resetToken = this.passwordResetRepo.create({
-      user,
-      token,
-      expiresAt,
-    });
-    await this.passwordResetRepo.save(resetToken);
+    const record = this.passwordResetRepo.create({ user, token, expiresAt });
+    await this.passwordResetRepo.save(record);
 
     await this.mailService.sendPasswordReset(email, token);
-    console.log('📨 Email de recuperación enviado a:', email);
+    console.log('📨 Email de recuperación enviado');
 
-    return { message: 'Email de recuperación enviado correctamente' };
+    return { message: 'Password reset email sent' };
   }
 
-  // -------------------------
-  // Restablecer contraseña
-  // -------------------------
+  // Reset password
   async resetPassword(token: string, newPassword: string) {
-    console.log('🔑 Intentando restablecer contraseña con token:', token);
+    console.log('🔑 Reset password con token:', token);
 
     const record = await this.passwordResetRepo.findOne({
       where: { token, used: false },
@@ -202,8 +271,7 @@ export class AuthService {
     });
 
     if (!record) throw new UnauthorizedException('Invalid or used token');
-    if (record.expiresAt < new Date())
-      throw new UnauthorizedException('Token expired');
+    if (record.expiresAt < new Date()) throw new UnauthorizedException('Token expired');
 
     const hashed = await bcrypt.hash(newPassword, 10);
 
@@ -213,25 +281,18 @@ export class AuthService {
     await this.usersRepo.save(record.user);
     await this.passwordResetRepo.save(record);
 
-    console.log('✅ Contraseña actualizada correctamente para:', record.user.email);
+    console.log('✅ Contraseña actualizada');
 
-    return { message: 'Contraseña restablecida correctamente' };
+    return { message: 'Password updated successfully' };
   }
 
-  // -------------------------
-  // Funciones auxiliares
-  // -------------------------
+
+  // Token helpers  
   private generateAccessToken(user: { id: string; email: string }) {
-    return this.jwt.sign(
-      { sub: user.id, email: user.email },
-      { expiresIn: '15m' },
-    );
+    return this.jwt.sign({ sub: user.id, email: user.email }, { expiresIn: '15m' });
   }
 
   private generateRefreshToken(): string {
     return randomBytes(32).toString('hex');
   }
 }
-
-
-
