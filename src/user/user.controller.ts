@@ -16,8 +16,9 @@ export class UserController {
     @ApiBearerAuth()
     @Get('me')
     getMe(@Request() req) {
-        return this.userService.findById(req.user.id, true);
+        return this.userService.getPublicProfile(req.user.id, req.user.id);
     }
+
 
     @ApiOperation({ summary: 'Actualizar mi perfil' })
     @UseGuards(JwtAuthGuard)
@@ -78,9 +79,12 @@ export class UserController {
     }
 
     @ApiOperation({ summary: 'Obtener el perfil público de un usuario' })
+    @ApiBearerAuth()
     @Get(':id')
-    getPublicProfile(@Param('id') id: string) {
-        return this.userService.getPublicProfile(id);
+    getPublicProfile(@Param('id') id: string, @Request() req) {
+        const currentUserId = req.user?.id; // opcional
+        return this.userService.getPublicProfile(id, currentUserId);
     }
+
 
 }

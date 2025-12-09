@@ -6,6 +6,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { VivacPoint } from 'src/entities/vivac-point.entity';
 import { readdirSync } from 'fs';
 import { join } from 'path';
+import { UserFollowService } from 'src/user-follow/user-follow.service';
 
 
 @Injectable()
@@ -15,6 +16,8 @@ export class UserService {
         private readonly userRepo: Repository<User>,
         @InjectRepository(VivacPoint)
         private readonly vivacRepo: Repository<VivacPoint>,
+
+        private readonly userFollowService: UserFollowService,
     ) { }
 
     async findById(id: string, includePrivate = false) {
@@ -52,7 +55,7 @@ export class UserService {
         return { message: 'Cuenta eliminada correctamente' };
     }
 
-    async getPublicProfile(id: string) {
+    async getPublicProfile(id: string, currentUserId?: string) {
         const user = await this.userRepo.findOne({
             where: { id },
             select: [
@@ -69,9 +72,24 @@ export class UserService {
         });
 
         if (!user) throw new NotFoundException('Usuario no encontrado');
+        
+        // Followers / Following
+       
+        const followersCount = await this.userFollowService.followersCount(id);
+        const followingCount = await this.userFollowService.followingCount(id);
 
-        return user;
+        const isFollowedByCurrentUser = currentUserId
+            ? await this.userFollowService.isFollowedByCurrentUser(currentUserId, id)
+            : false;
+
+        return {
+            ...user,
+            followersCount,
+            followingCount,
+            isFollowedByCurrentUser,
+        };
     }
+
 
     async getMyRanking(userId: string) {
         // Usuario actual
@@ -115,17 +133,17 @@ export class UserService {
         }));
     }
 
-    async selectAvatar(userId: string, avatar: string) {        
+    async selectAvatar(userId: string, avatar: string) {
         const validAvatars = this.getAvailableAvatars().map(a => a.name);
-        
+
         if (!validAvatars.includes(avatar)) {
             throw new BadRequestException('Avatar no válido.');
         }
-        
+
         await this.userRepo.update(userId, {
             avatarUrl: `/uploads/avatars/${avatar}`,
         });
-        
+
         return this.findById(userId, true);
     }
 

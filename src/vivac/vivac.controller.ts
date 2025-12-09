@@ -46,7 +46,7 @@ export class VivacController {
   constructor(
     private readonly vivacService: VivacService,
     private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   // CREAR VIVAC
   @UseGuards(JwtAuthGuard)
@@ -159,7 +159,7 @@ export class VivacController {
   @ApiOperation({
     summary: 'Obtener un vivac por su ID',
     description:
-      'Devuelve la información completa de un vivac, incluyendo usuario creador y valoraciones.',
+      'Devuelve la información completa de un vivac, incluyendo usuario creador, valoraciones y si el usuario actual sigue al creador.',
   })
   @ApiParam({
     name: 'id',
@@ -173,8 +173,9 @@ export class VivacController {
   @ApiNotFoundResponse({
     description: 'No se encontró ningún vivac con el ID proporcionado.',
   })
-  findOne(@Param('id') id: string) {
-    return this.vivacService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    const currentUserId = req.user?.id; // Puede ser undefined si no hay login
+    return this.vivacService.findOne(id, currentUserId);
   }
 
   // ACTUALIZAR
