@@ -10,12 +10,14 @@ import {
   RefreshDto,
   LogoutDto,
 } from './dto/auth.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
+
 
 // Controlador Auth documentado
 @ApiTags('auth') // Agrupación Swagger
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(private readonly auth: AuthService) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
@@ -65,6 +67,15 @@ export class AuthController {
   async resetPassword(@Body() dto: PasswordResetDto) {
     return this.auth.resetPassword(dto.token, dto.newPassword);
   }
+
+  @Post('google')
+  @ApiOperation({ summary: 'Inicio de sesión con Google' })
+  @ApiResponse({ status: 200, description: 'Login con Google exitoso, devuelve tokens JWT.' })
+  @ApiResponse({ status: 401, description: 'Token de Google inválido.' })
+  async googleLogin(@Req() req: Request, @Body() dto: GoogleLoginDto) {
+    return this.auth.googleLogin(dto.idToken, req);
+  }
+
 }
 
 

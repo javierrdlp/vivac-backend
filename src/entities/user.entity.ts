@@ -38,16 +38,18 @@ export class User {
 
   @Column({
     unique: true,
-    length: 254, 
+    length: 254,
     transformer: {
       to: (v?: string) => v?.trim().toLowerCase(),
       from: (v: string) => v,
     },
   })
   email: string;
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  googleId?: string;
 
-  @Column({ select: false, length: 255 })
-  passwordHash: string;
+  @Column({ select: false, length: 255, nullable: true })
+  passwordHash?: string;
 
   @Column({ nullable: true, length: 2048 })
   avatarUrl?: string;
@@ -106,4 +108,3 @@ export class User {
   @OneToMany(() => UserSession, (session) => session.user)
   sessions: UserSession[];
 }
-
