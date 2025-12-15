@@ -21,22 +21,84 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+## Descripción
 
 API para Wild Spot, una plataforma para descubrir, crear y compartir la experencia de hacer vivac.
 
 Funcionalidades de la API:
 - Autenticación de usuario (JWT & Google OAuth)
-- Manejo de puntos de viviac
+- Gestión de usuarios
+- Gestión de puntos de vivac
 - Sistema de carpetas organizadoras de puntos vivac
 - Puntuaciones y reseñas
 - Sistema de seguidores
 - Logros y xp de usuario
 - API del clima integrada (Weather API)
-- API de subida y alojamientos de imagenes (Cloudinary)
+- API de subida y alojamientos de imágenes (Cloudinary)
 
-Built with **NestJS**, **TypeORM** and **PostgreSQL**.
+Construido con **NestJS**, **TypeORM** y **PostgreSQL**.
 
+## Tech Stack
+
+Backend
+
+- NestJS (framework para Node.js)
+
+- TypeScript
+
+- TypeORM
+
+Base de datos
+
+- PostgreSQL
+
+Autenticación
+
+- JWT (access y refresh tokens)
+
+- Google OAuth 2.0
+
+Servicios externos
+
+- Cloudinary API (subida y optimización de imágenes)
+
+- WeatherAPI (información meteorológica)
+
+Infraestructura
+
+- Railway (hosting del backend y la base de datos)
+
+
+## Variables de entorno
+
+Crea un archivo `.env` en la raíz del proyecto basándote en las siguientes propiedades.
+
+> Nota: **no subas** el archivo `.env` al repositorio.
+
+Server
+- PORT=3000
+- NODE_ENV=development
+
+Database (Railway / local)
+- DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB_NAME
+
+JWT
+- JWT_SECRET=xxxxxxx
+- JWT_EXPIRES_IN=1h
+- JWT_REFRESH_SECRET=xxxxxxx
+- JWT_REFRESH_EXPIRES_IN=7d
+
+Google OAuth
+- GOOGLE_CLIENT_ID=xxxxxxx
+- GOOGLE_CLIENT_SECRET=xxxxxxx
+
+Cloudinary
+- CLOUDINARY_CLOUD_NAME=xxxxxxx
+- CLOUDINARY_API_KEY=xxxxxxx
+- CLOUDINARY_API_SECRET=xxxxxxx
+
+# Weather API
+WEATHER_API_KEY=xxxxxxx
 
 ## Project setup
 
