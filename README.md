@@ -23,7 +23,20 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+API para Wild Spot, una plataforma para descubrir, crear y compartir la experencia de hacer vivac.
+
+Funcionalidades de la API:
+- Autenticación de usuario (JWT & Google OAuth)
+- Manejo de puntos de viviac
+- Sistema de carpetas organizadoras de puntos vivac
+- Puntuaciones y reseñas
+- Sistema de seguidores
+- Logros y xp de usuario
+- API del clima integrada (Weather API)
+- API de subida y alojamientos de imagenes (Cloudinary)
+
+Built with **NestJS**, **TypeORM** and **PostgreSQL**.
+
 
 ## Project setup
 
