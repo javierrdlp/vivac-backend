@@ -71,34 +71,49 @@ Infraestructura
 
 ## Variables de entorno
 
-Crea un archivo `.env` en la raíz del proyecto basándote en las siguientes propiedades.
+Este proyecto requiere un archivo `.env` para su correcto funcionamiento.
+
+Las variables incluyen:
+- Configuración del servidor
+- Conexión a base de datos PostgreSQL
+- Autenticación JWT
+- Integración con Google OAuth
+- Envío de correos (Resend)
+- Subida de imágenes con Cloudinary
+- Información meteorológica
+
+Crea un archivo `.env` en la raíz del proyecto basándote en los ejemplos más abajo.
 
 > Nota: **no subas** el archivo `.env` al repositorio.
 
-Server
+**Server**
 - PORT=3000
-- NODE_ENV=development
 
-Database (Railway / local)
+**Database (Railway / local)**
 - DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB_NAME
 
-JWT
-- JWT_SECRET=xxxxxxx
-- JWT_EXPIRES_IN=1h
-- JWT_REFRESH_SECRET=xxxxxxx
-- JWT_REFRESH_EXPIRES_IN=7d
+**JWT**
+- JWT_SECRET=change_me
+- JWT_EXPIRES=1h
 
-Google OAuth
-- GOOGLE_CLIENT_ID=xxxxxxx
-- GOOGLE_CLIENT_SECRET=xxxxxxx
+**Mail (Resend)**
+- MAIL_FROM=no-reply@vivac.app
+- RESEND_API_KEY=change_me
 
-Cloudinary
-- CLOUDINARY_CLOUD_NAME=xxxxxxx
-- CLOUDINARY_API_KEY=xxxxxxx
-- CLOUDINARY_API_SECRET=xxxxxxx
+**Frontend**
+- FRONTEND_URL=http://localhost:5173
 
-# Weather API
-WEATHER_API_KEY=xxxxxxx
+**Google OAuth**
+- GOOGLE_CLIENT_ID=change_me
+
+**Cloudinary**
+- CLOUDINARY_CLOUD_NAME=change_me
+- CLOUDINARY_API_KEY=change_me
+- CLOUDINARY_API_SECRET=change_me
+
+**Weather API**
+- WEATHER_API_KEY=change_me
+
 
 ## Project setup
 
