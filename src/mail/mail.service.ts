@@ -1,57 +1,47 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
 
-  constructor() {    
-    //Configuración SMTP
-    this.transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
-      port: Number(process.env.MAIL_PORT) || 587,
-      secure: false, 
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-      },
-    });
+  constructor() {
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
-  
-  // Envío correo de recuperación  
+
   async sendPasswordReset(email: string, token: string): Promise<void> {
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    const resetLink = `https://vivacweb.com/reset-password?token=${token}`;
-
-    try {      
-      const info = await this.transporter.sendMail({
-        from: process.env.MAIL_FROM,
+    try {
+      await this.resend.emails.send({
+        from: process.env.MAIL_FROM!,
         to: email,
-        subject: '🔐 Restablecer contraseña - VivacGo',
+        subject: '🔐 Restablecer contraseña - Wild Spot',
         html: `
           <div style="font-family: Arial, sans-serif; line-height: 1.6;">
             <h2 style="color: #2e7d32;">Restablecer tu contraseña</h2>
             <p>Hola 👋,</p>
-            <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>VivacGo</strong>.</p>
+            <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>Wild Spot</strong>.</p>
             <p>Puedes hacerlo desde el siguiente enlace:</p>
             <p>
               <a href="${resetLink}" style="background-color: #2e7d32; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none;">
                 Restablecer contraseña
               </a>
             </p>
-            <p> Este enlace expirará en 15 minutos.</p>
+            <p>Este enlace expirará en 15 minutos.</p>
             <p>Si tú no realizaste esta solicitud, puedes ignorar este mensaje.</p>
             <br/>
-            <p>— El equipo de VivacGo 🌿</p>
+            <p>— El equipo de Wild Spot 🌿</p>
           </div>
         `,
       });
-
-      console.log('Email de recuperación enviado:', info.messageId);
-    } catch (err) {
-      console.error('Error al enviar el correo:', err);
-      throw new InternalServerErrorException('No se pudo enviar el correo de recuperación');
+    } catch (error) {
+      console.error('Error enviando email de recuperación:', error);
+      throw new InternalServerErrorException(
+        'No se pudo enviar el correo de recuperación',
+      );
     }
   }
 }
+
 
