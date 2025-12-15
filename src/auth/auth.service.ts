@@ -30,7 +30,7 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly mailService: MailService,
     private readonly sessionService: SessionService,
-  ) { }
+  ) {}
 
   // Registro normal
   async register(userName: string, email: string, password: string) {
@@ -41,8 +41,10 @@ export class AuthService {
     });
 
     if (existing) {
-      if (existing.email === email) throw new UnauthorizedException('Email already registered');
-      if (existing.userName === userName) throw new UnauthorizedException('Username already taken');
+      if (existing.email === email)
+        throw new UnauthorizedException('Email already registered');
+      if (existing.userName === userName)
+        throw new UnauthorizedException('Username already taken');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -79,12 +81,12 @@ export class AuthService {
       .where('user.email = :email', { email })
       .getOne();
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
     // Si es cuenta Google, no puede loguear con contraseña
     if (!user.passwordHash) {
       throw new UnauthorizedException(
-        'This account uses Google login. Please sign in with Google.'
+        'This account uses Google login. Please sign in with Google.',
       );
     }
 
@@ -112,8 +114,7 @@ export class AuthService {
     };
   }
 
-
-  // GOOGLE: 1) Verificar token con Google  
+  // GOOGLE: 1) Verificar token con Google
   private async verifyGoogleToken(idToken: string) {
     try {
       const ticket = await this.googleClient.verifyIdToken({
@@ -135,19 +136,18 @@ export class AuthService {
     // Buscar por googleId
     let user = await this.usersRepo.findOne({ where: { googleId } });
 
-    // Buscar por email si no tenemos googleId 
+    // Buscar por email si no tenemos googleId
     if (!user && email) {
       user = await this.usersRepo.findOne({ where: { email } });
     }
 
     if (!user) {
-      // Crear usuario 
+      // Crear usuario
       user = this.usersRepo.create({
-        googleId, 
+        googleId,
         email,
         userName: name ?? email.split('@')[0],
         avatarUrl: picture,
-        
       });
 
       user = await this.usersRepo.save(user);
@@ -175,7 +175,8 @@ export class AuthService {
 
     return user;
   }
-  // GOOGLE: 3) Login final con sesiones  
+
+  // GOOGLE: 3) Login final con sesiones
   async googleLogin(idToken: string, req: Request) {
     console.log('🔐 Intento de login con Google');
 
@@ -216,7 +217,8 @@ export class AuthService {
   // Refresh token
   async refresh(refreshToken: string) {
     const session = await this.sessionService.findValidByToken(refreshToken);
-    if (!session) throw new UnauthorizedException('Invalid or expired refresh token');
+    if (!session)
+      throw new UnauthorizedException('Invalid or expired refresh token');
 
     const user = session.user;
 
@@ -247,18 +249,23 @@ export class AuthService {
     console.log('📩 Solicitud reset password:', email);
 
     const user = await this.usersRepo.findOne({ where: { email } });
-    if (!user) throw new NotFoundException('User not found');
 
-    const token = randomBytes(32).toString('hex');
-    const expiresAt = addMinutes(new Date(), 15);
+    // Si el usuario existe, generamos token y enviamos email
+    if (user) {
+      const token = randomBytes(32).toString('hex');
+      const expiresAt = addMinutes(new Date(), 15);
 
-    const record = this.passwordResetRepo.create({ user, token, expiresAt });
-    await this.passwordResetRepo.save(record);
+      const record = this.passwordResetRepo.create({ user, token, expiresAt });
+      await this.passwordResetRepo.save(record);
 
-    await this.mailService.sendPasswordReset(email, token);
-    console.log('📨 Email de recuperación enviado');
+      await this.mailService.sendPasswordReset(email, token);
+      console.log('📨 Email de recuperación enviado');
+    }
 
-    return { message: 'Password reset email sent' };
+    // Respuesta genérica por seguridad
+    return {
+      message: 'If the email exists, a password reset link has been sent',
+    };
   }
 
   // Reset password
@@ -270,8 +277,10 @@ export class AuthService {
       relations: ['user'],
     });
 
-    if (!record) throw new UnauthorizedException('Invalid or used token');
-    if (record.expiresAt < new Date()) throw new UnauthorizedException('Token expired');
+    if (!record)
+      throw new UnauthorizedException('Invalid or used token');
+    if (record.expiresAt < new Date())
+      throw new UnauthorizedException('Token expired');
 
     const hashed = await bcrypt.hash(newPassword, 10);
 
@@ -286,10 +295,12 @@ export class AuthService {
     return { message: 'Password updated successfully' };
   }
 
-
-  // Token helpers  
+  // Token helpers
   private generateAccessToken(user: { id: string; email: string }) {
-    return this.jwt.sign({ sub: user.id, email: user.email }, { expiresIn: '15m' });
+    return this.jwt.sign(
+      { sub: user.id, email: user.email },
+      { expiresIn: '15m' },
+    );
   }
 
   private generateRefreshToken(): string {

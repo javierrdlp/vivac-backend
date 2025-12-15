@@ -1,7 +1,12 @@
 import { Controller, Post, Body, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { Request } from 'express';
-import { ApiTags, ApiOperation, ApiResponse, ApiProperty, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import {
   RegisterDto,
   LoginDto,
@@ -12,12 +17,10 @@ import {
 } from './dto/auth.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 
-
-// Controlador Auth documentado
 @ApiTags('auth') // Agrupación Swagger
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) { }
+  constructor(private readonly auth: AuthService) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
@@ -53,30 +56,42 @@ export class AuthController {
   }
 
   @Post('request-password-reset')
-  @ApiOperation({ summary: 'Enviar correo con enlace de recuperación de contraseña' })
-  @ApiResponse({ status: 200, description: 'Correo de recuperación enviado.' })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  @ApiOperation({
+    summary: 'Enviar correo con enlace de recuperación de contraseña',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Si el email existe, se enviará un correo con el enlace de recuperación.',
+  })
   async requestPasswordReset(@Body() dto: PasswordResetRequestDto) {
     return this.auth.requestPasswordReset(dto.email);
   }
 
   @Post('reset-password')
-  @ApiOperation({ summary: 'Restablecer contraseña mediante token recibido por email' })
-  @ApiResponse({ status: 200, description: 'Contraseña restablecida correctamente.' })
-  @ApiResponse({ status: 400, description: 'Token inválido o expirado.' })
+  @ApiOperation({
+    summary: 'Restablecer contraseña mediante token recibido por email',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Contraseña restablecida correctamente.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Token inválido, usado o expirado.',
+  })
   async resetPassword(@Body() dto: PasswordResetDto) {
     return this.auth.resetPassword(dto.token, dto.newPassword);
   }
 
   @Post('google')
   @ApiOperation({ summary: 'Inicio de sesión con Google' })
-  @ApiResponse({ status: 200, description: 'Login con Google exitoso, devuelve tokens JWT.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login con Google exitoso, devuelve tokens JWT.',
+  })
   @ApiResponse({ status: 401, description: 'Token de Google inválido.' })
   async googleLogin(@Req() req: Request, @Body() dto: GoogleLoginDto) {
     return this.auth.googleLogin(dto.idToken, req);
   }
-
 }
-
-
-
