@@ -213,16 +213,16 @@ npm run start
 
 ```bash
 # unit tests
-$ npm run test
+npm run test
 
 # e2e tests
-$ npm run test:e2e
+npm run test:e2e
 
 # test coverage
-$ npm run test:cov
+npm run test:cov
 ```
 
-## Deployment
+## Despliegue
 
 El backend está desplegado en **Railway**.
 
