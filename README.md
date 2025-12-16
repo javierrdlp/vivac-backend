@@ -80,34 +80,29 @@ Crea un archivo `.env` en la raíz del proyecto basándote en los ejemplos más 
 
 > Nota: **no subas** el archivo `.env` al repositorio.
 
-**Server**
-- PORT=3000
-
-**Database (Railway / local)**
-- DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB_NAME
-
-**JWT**
-- JWT_SECRET=change_me
-- JWT_EXPIRES=1h
-
-**Mail (Resend)**
-- MAIL_FROM=no-reply@vivac.app
-- RESEND_API_KEY=change_me
-
-**Frontend**
-- FRONTEND_URL=http://localhost:5173
-
-**Google OAuth**
-- GOOGLE_CLIENT_ID=change_me
-
-**Cloudinary**
-- CLOUDINARY_CLOUD_NAME=change_me
-- CLOUDINARY_API_KEY=change_me
-- CLOUDINARY_API_SECRET=change_me
-
-**Weather API**
-- WEATHER_API_KEY=change_me
-
+## Archivo .env
+```bash
+//Server
+PORT=3000
+//Database (Railway / local)
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB_NAME
+//JWT
+JWT_SECRET=change_me
+JWT_EXPIRES=1h
+/Mail (Resend)
+MAIL_FROM=no-reply@vivac.app
+RESEND_API_KEY=change_me
+//Frontend
+FRONTEND_URL=http://localhost:5173
+//Google OAuth
+GOOGLE_CLIENT_ID=change_me
+//Cloudinary
+CLOUDINARY_CLOUD_NAME=change_me
+CLOUDINARY_API_KEY=change_me
+CLOUDINARY_API_SECRET=change_me
+//Weather API
+WEATHER_API_KEY=change_me
+```
 
 ## Setup del proyecto
 
