@@ -41,8 +41,10 @@ import { UserFollowModule } from './user-follow/user-follow.module';
       url: process.env.DATABASE_URL,
       synchronize: true,
       schema: 'public',
-      ssl: { rejectUnauthorized: false },
       autoLoadEntities: true,
+      ssl: process.env.DATABASE_URL?.includes('localhost')
+        ? false
+        : { rejectUnauthorized: false },
     }),
 
     TypeOrmModule.forFeature([
