@@ -175,11 +175,12 @@ Command Line Tools
 
 ### 5. Configurar la variable DATABASE_URL
 
-- En el archivo .env del proyecto, configura la conexión a la base de datos local: 
-
-DATABASE_URL=postgresql://postgres:TU_PASSWORD@localhost:5432/vivac
-
+- En el archivo .env del proyecto, configura la conexión a la base de datos local:
 - Sustituye TU_PASSWORD por la contraseña del usuario postgres.
+```bash
+DATABASE_URL=postgresql://postgres:TU_PASSWORD@localhost:5432/vivac
+```
+
 ```bash
 Nota sobre el esquema de la base de datos
 
