@@ -111,13 +111,97 @@ Crea un archivo `.env` en la raíz del proyecto basándote en los ejemplos más 
 
 ## Setup del proyecto
 
+Configuración de PostgreSQL en local (Windows)
+
+Para ejecutar el backend en local es necesario disponer de una base de datos PostgreSQL en tu equipo.
+En producción, la base de datos está alojada en Railway.
+
+### 1. Instalación de PostgreSQL
+
+- Descarga e instala PostgreSQL desde la web oficial:  https://www.postgresql.org/download/windows/
+
+- Durante la instalación:
+
+- Selecciona los siguientes componentes:
+
+PostgreSQL Server
+
+pgAdmin 4 (opcional, pero recomendable)
+
+Command Line Tools
+
+- Mantén el puerto por defecto 5432
+
+- Anota la contraseña del usuario postgres
+
+- Cualquier versión reciente de PostgreSQL (14 o superior) es compatible, este proyecto ha sido probado con PostgreSQL 17.
+
+### 2. Comprobar que PostgreSQL está en ejecución
+
+- Asegúrate de que el servicio de PostgreSQL está arrancado.
+
+- En Windows:
+
+- Pulsa Win + R
+
+- Escribe services.msc y pulsa Enter
+
+- Busca el servicio postgresql-x64-XX
+
+- Comprueba que su estado sea En ejecución
+
+### 3. Añadir PostgreSQL al PATH del sistema
+
+- Para poder utilizar el comando psql desde la consola, añade PostgreSQL al PATH del sistema.
+
+- Abre las Variables de entorno del sistema
+
+- En Variables del sistema, edita la variable Path
+
+- Añade la ruta donde se instaló PostgreSQL, por ejemplo: C:\Program Files\PostgreSQL\17\bin
+
+- Guarda los cambios
+
+- Puede ser necesario reiniciar el sistema
+
+### 4. Crear la base de datos por línea de comandos
+
+- Pulsa Win
+
+- Escribe cmd
+
+- Abre Símbolo del sistema
+
+- Ejecuta el siguiente comando: psql -U postgres
+
+- Introduce la contraseña configurada durante la instalación (los caracteres no se mostrarán al escribir)
+
+- Una vez dentro de psql, crea la base de datos con el comando: CREATE DATABASE vivac;
+
+### 5. Configurar la variable DATABASE_URL
+
+- En el archivo .env del proyecto, configura la conexión a la base de datos local: 
+
+DATABASE_URL=postgresql://postgres:TU_PASSWORD@localhost:5432/vivac
+
+- Sustituye TU_PASSWORD por la contraseña del usuario postgres.
 ```bash
-$ npm install
+Nota sobre el esquema de la base de datos
+
+En entorno de desarrollo, TypeORM genera automáticamente las tablas a partir de las entidades del proyecto al arrancar la aplicación.
+
+No es necesario crear tablas manualmente.
+```
+```bash
+
 ```
 
 ## Compilar y ejecutar el proyecto
 
 ```bash
+# (la primera vez solamente)
+npm install
+
 # modo desarrollo (recomendado)
 npm run start:dev
 
@@ -140,40 +224,9 @@ $ npm run test:cov
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+El backend está desplegado en **Railway**.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+El despliegue se realiza automáticamente al hacer push a la rama principal del repositorio.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Las variables de entorno se configuran desde el panel de Railway.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
