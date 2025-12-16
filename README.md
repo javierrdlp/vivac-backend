@@ -1,25 +1,13 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+
+<p align="center" style="background-color:#ffffff; padding:20px; border-radius:12px;">
+  <img width="294" height="148" alt="WildSpot logo" src="https://github.com/user-attachments/assets/a03be7d1-ac63-4206-a100-296292fef187" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# 🌄 Wild Spot – Backend
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Backend API para la plataforma **Vivac / Wild Spot**, orientada a la gestión y descubrimiento de puntos de vivac.
+
+Desarrollado con **NestJS**, **TypeORM** y **PostgreSQL**.
 
 ## Descripción
 
@@ -35,8 +23,6 @@ Funcionalidades de la API:
 - Logros y xp de usuario
 - API del clima integrada (Weather API)
 - API de subida y alojamientos de imágenes (Cloudinary)
-
-Construido con **NestJS**, **TypeORM** y **PostgreSQL**.
 
 ## Tech Stack
 
@@ -68,6 +54,14 @@ Infraestructura
 
 - Railway (hosting del backend y la base de datos)
 
+## Clonar el proyecto
+
+Clona este repositorio en tu máquina local:
+
+```bash
+git clone https://github.com/javierrdlp/vivac-backend.git
+cd vivac-backend
+```
 
 ## Variables de entorno
 
@@ -115,23 +109,20 @@ Crea un archivo `.env` en la raíz del proyecto basándote en los ejemplos más 
 - WEATHER_API_KEY=change_me
 
 
-## Project setup
+## Setup del proyecto
 
 ```bash
 $ npm install
 ```
 
-## Compile and run the project
+## Compilar y ejecutar el proyecto
 
 ```bash
-# development
-$ npm run start
+# modo desarrollo (recomendado)
+npm run start:dev
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# modo estándar
+npm run start
 ```
 
 ## Run tests
