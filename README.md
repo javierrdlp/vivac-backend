@@ -54,6 +54,13 @@ Infraestructura
 
 - Railway (hosting del backend y la base de datos)
 
+## Requisitos previos
+
+Antes de clonar y ejecutar el proyecto, asegúrate de tener instalado:
+- **Node.js** (Yo he usado la v22.14.0)
+- **Git**
+- Opcionalmente, puedes usar una base de datos externa en lugar de PostgreSQL local.
+
 ## Clonar el proyecto
 
 Clona este repositorio en tu máquina local:
