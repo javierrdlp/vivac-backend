@@ -40,7 +40,7 @@ Base de datos
 
 Autenticación
 
-- JWT (access y refresh tokens)
+- JWT
 
 - Google OAuth 2.0
 
