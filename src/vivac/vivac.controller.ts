@@ -36,7 +36,7 @@ import { VivacService } from './vivac.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateVivacDto } from './dto/create-vivac.dto';
 import { UpdateVivacDto } from './dto/update-vivac.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { VivacPoint } from '../entities/vivac-point.entity';
 
 @ApiTags('Vivacs')

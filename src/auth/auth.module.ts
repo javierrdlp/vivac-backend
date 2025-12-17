@@ -7,7 +7,7 @@ import { AuthController } from './auth.controller';
 import { User } from '../entities/user.entity';
 import { PasswordResetToken } from '../entities/password-reset-token.entity'; 
 import { MailModule } from '../mail/mail.module';
-import { UserSession } from 'src/auth/entities/user-session.entity';
+import { UserSession } from './entities/user-session.entity';
 import { SessionService } from './services/session.service';
 import { JwtStrategy } from './jwt.strategy';
 

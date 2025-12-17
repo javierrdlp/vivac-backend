@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { VivacPoint } from 'src/entities/vivac-point.entity';
+import { VivacPoint } from '../entities/vivac-point.entity';
 import { readdirSync } from 'fs';
 import { join } from 'path';
-import { UserFollowService } from 'src/user-follow/user-follow.service';
+import { UserFollowService } from '../user-follow/user-follow.service';
 
 
 @Injectable()

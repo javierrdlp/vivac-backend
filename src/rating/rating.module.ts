@@ -5,7 +5,7 @@ import { RatingService } from './rating.service';
 import { RatingController } from './rating.controller';
 import { VivacPoint } from '../entities/vivac-point.entity';
 import { User } from '../entities/user.entity';
-import { AchievementModule } from 'src/achievements/achievement.module';
+import { AchievementModule } from '../achievements/achievement.module';
 
 @Module({
   imports: [

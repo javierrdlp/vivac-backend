@@ -6,7 +6,7 @@ import { CreateVivacDto } from './dto/create-vivac.dto';
 import { UpdateVivacDto } from './dto/update-vivac.dto';
 import { User } from '../entities/user.entity';
 import { AchievementService } from '../achievements/achievement.service';
-import { UserFollowService } from 'src/user-follow/user-follow.service';
+import { UserFollowService } from '../user-follow/user-follow.service';
 
 @Injectable()
 export class VivacService {

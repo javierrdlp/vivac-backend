@@ -5,8 +5,8 @@ import { User } from '../entities/user.entity';
 import { VivacService } from './vivac.service';
 import { VivacController } from './vivac.controller';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
-import { AchievementModule } from 'src/achievements/achievement.module';
-import { UserFollowModule } from 'src/user-follow/user-follow.module';
+import { AchievementModule } from '../achievements/achievement.module';
+import { UserFollowModule } from '../user-follow/user-follow.module';
 
 
 @Module({

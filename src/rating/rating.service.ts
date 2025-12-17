@@ -6,7 +6,7 @@ import { VivacPoint } from '../entities/vivac-point.entity';
 import { User } from '../entities/user.entity';
 import { CreateRatingDto } from './dto/create-rating.dto';
 import { UpdateRatingDto } from './dto/update-rating.dto';
-import { AchievementService } from 'src/achievements/achievement.service';
+import { AchievementService } from '../achievements/achievement.service';
 
 @Injectable()
 export class RatingService {

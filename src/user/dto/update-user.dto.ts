@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Length, IsEnum, IsUrl } from 'class-validator';
-import { UserExperience } from 'src/enums/user-experience.enum';
+import { UserExperience } from '../../enums/user-experience.enum';
 
 export class UpdateUserDto {
     @ApiPropertyOptional({ example: 'JaviDev' })

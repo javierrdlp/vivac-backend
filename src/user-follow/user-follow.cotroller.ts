@@ -1,6 +1,6 @@
 import { Controller, Post, Delete, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { UserFollowService } from './user-follow.service';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { FollowerItemDto } from './dto/follower-item.dto';
