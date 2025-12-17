@@ -17,6 +17,8 @@ import { UserGroup } from './user-group.entity';
 import { GroupMessage } from './group-message.entity';
 import { UserExperience } from '../enums/user-experience.enum';
 import { UserSession } from '../auth/entities/user-session.entity';
+import { FavoriteFolder } from './favorite-folder.entity';
+
 
 @Entity()
 @Check(`"xpPoints" >= 0`)
@@ -107,4 +109,8 @@ export class User {
 
   @OneToMany(() => UserSession, (session) => session.user)
   sessions: UserSession[];
+
+  @OneToMany(() => FavoriteFolder, folder => folder.user)
+  favoriteFolders: FavoriteFolder[];
+
 }

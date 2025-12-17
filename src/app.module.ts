@@ -23,6 +23,7 @@ import { WeatherModule } from './weather/weather.module';
 import { AchievementSeeder } from './achievements/achievement.seed';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { UserFollowModule } from './user-follow/user-follow.module';
+import { FavoritesModule } from './favorites/favorites.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { UserFollowModule } from './user-follow/user-follow.module';
     RatingModule,
     WeatherModule,
     UserFollowModule,
+    FavoritesModule
   ],
 
   controllers: [AppController],

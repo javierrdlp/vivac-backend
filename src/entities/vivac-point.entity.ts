@@ -16,6 +16,8 @@ import { AccessDifficulty } from '../enums/access-difficulty.enum';
 import { Environment } from '../enums/environment.enum';
 import { Privacity } from '../enums/privacity.enum';
 import { TerrainType } from '../enums/terrain-type.enum';
+import { UserFavorite } from './user-favorite.entity';
+
 
 @Entity()
 @Check(`"latitude" BETWEEN -90 AND 90`)
@@ -78,5 +80,9 @@ export class VivacPoint {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => UserFavorite, fav => fav.vivac)
+  favoritedBy: UserFavorite[];
+
 }
 
