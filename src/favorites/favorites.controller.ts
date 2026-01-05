@@ -1,10 +1,10 @@
-import { 
-  Controller, Post, Get, Delete, Patch, Param, Body, Req, UseGuards 
+import {
+  Controller, Post, Get, Delete, Patch, Param, Body, Req, UseGuards
 } from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { 
+import {
   ApiBearerAuth,
   ApiTags,
   ApiOperation,
@@ -24,7 +24,7 @@ import {
 @Controller('favorites')
 export class FavoritesController {
 
-  constructor(private readonly favoritesService: FavoritesService) {}
+  constructor(private readonly favoritesService: FavoritesService) { }
 
   // Crear carpeta
   @Post('folders')
@@ -139,8 +139,9 @@ export class FavoritesController {
   @ApiNotFoundResponse({
     description: 'El favorito no existe.'
   })
+  @Delete(':favoriteId')
   removeFavorite(@Req() req, @Param('favoriteId') favoriteId: string) {
-    return this.favoritesService.removeFavorite(favoriteId);
+    return this.favoritesService.removeFavorite(req.user.id, favoriteId);
   }
 
   // Mover favorito a otra carpeta

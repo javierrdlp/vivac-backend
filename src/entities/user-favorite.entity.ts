@@ -12,10 +12,13 @@ import { FavoriteFolder } from './favorite-folder.entity';
 import { VivacPoint } from './vivac-point.entity';
 
 @Entity()
-@Unique(['folder', 'vivac'])
+@Unique(['userId', 'vivacId'])
 export class UserFavorite {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column()
+  userId: string; 
 
   @ManyToOne(() => FavoriteFolder, folder => folder.favorites, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'folderId' })

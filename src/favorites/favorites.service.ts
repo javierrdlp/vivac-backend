@@ -8,7 +8,6 @@ import { CreateFolderDto } from './dto/create-folder.dto';
 
 @Injectable()
 export class FavoritesService {
-
   constructor(
     @InjectRepository(FavoriteFolder)
     private folderRepo: Repository<FavoriteFolder>,
@@ -18,9 +17,9 @@ export class FavoritesService {
 
     @InjectRepository(VivacPoint)
     private vivacRepo: Repository<VivacPoint>,
-  ) { }
+  ) {}
 
-  // Carpetas
+  // Crear carpeta
   async createFolder(userId: string, dto: CreateFolderDto) {
     const exists = await this.folderRepo.findOne({
       where: { userId, name: dto.name },
@@ -38,6 +37,7 @@ export class FavoritesService {
     return await this.folderRepo.save(folder);
   }
 
+  // Listar carpetas
   async getUserFolders(userId: string) {
     return await this.folderRepo.find({
       where: { userId },
@@ -45,6 +45,7 @@ export class FavoritesService {
     });
   }
 
+  // Eliminar carpeta
   async deleteFolder(userId: string, folderId: string) {
     const folder = await this.folderRepo.findOne({
       where: { id: folderId, userId },
@@ -58,7 +59,7 @@ export class FavoritesService {
     return { message: 'Carpeta eliminada' };
   }
 
-  // Favoritos
+  // Añadir vivac a favoritos
   async addFavorite(userId: string, folderId: string, vivacId: string) {
     const folder = await this.folderRepo.findOne({
       where: { id: folderId, userId },
@@ -69,18 +70,17 @@ export class FavoritesService {
     const vivac = await this.vivacRepo.findOne({ where: { id: vivacId } });
     if (!vivac) throw new NotFoundException('Vivac no encontrado');
 
+    // Evitar duplicados por usuario (aunque intente meterlo en otra carpeta)
     const exists = await this.favoriteRepo.findOne({
-      where: {
-        folderId,
-        vivacId,
-      },
+      where: { userId, vivacId },
     });
 
     if (exists) {
-      throw new ConflictException('Este vivac ya está en la carpeta');
+      throw new ConflictException('Este vivac ya está en favoritos');
     }
 
     const favorite = this.favoriteRepo.create({
+      userId,
       folderId,
       vivacId,
     });
@@ -88,9 +88,10 @@ export class FavoritesService {
     return await this.favoriteRepo.save(favorite);
   }
 
-  async removeFavorite(favoriteId: string) {
+  // Eliminar favorito
+  async removeFavorite(userId: string, favoriteId: string) {
     const fav = await this.favoriteRepo.findOne({
-      where: { id: favoriteId },
+      where: { id: favoriteId, userId },
     });
 
     if (!fav) throw new NotFoundException('Favorito no encontrado');
@@ -99,37 +100,40 @@ export class FavoritesService {
     return { message: 'Eliminado de favoritos' };
   }
 
+  // Listar favoritos de una carpeta
   async getFavoritesInFolder(userId: string, folderId: string) {
+    // Asegurar que la carpeta es del usuario
     const folder = await this.folderRepo.findOne({
       where: { id: folderId, userId },
     });
 
     if (!folder) throw new NotFoundException('Carpeta no encontrada');
 
+    // Traer favoritos de esa carpeta (y que además sean del usuario)
     return await this.favoriteRepo.find({
-      where: { folderId },
+      where: { folderId, userId },
       relations: ['vivac'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  // Mover favorito
-  async moveFavorite(userId: string, favoriteId: string, newFolderId: string) { 
+  // Mover favorito a otra carpeta
+  async moveFavorite(userId: string, favoriteId: string, newFolderId: string) {
+    // Asegurar que el favorito pertenece al usuario
     const favorite = await this.favoriteRepo.findOne({
-      where: { id: favoriteId },
+      where: { id: favoriteId, userId },
     });
 
     if (!favorite) throw new NotFoundException('Favorito no encontrado');
-   
+
+    // Asegurar que la carpeta destino es del usuario
     const newFolder = await this.folderRepo.findOne({
       where: { id: newFolderId, userId },
     });
 
     if (!newFolder) throw new NotFoundException('Carpeta destino no encontrada');
-    
+
     favorite.folderId = newFolderId;
-   
     return await this.favoriteRepo.save(favorite);
   }
-
 }
