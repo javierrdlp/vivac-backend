@@ -147,4 +147,17 @@ export class FavoritesService {
     favorite.folderId = newFolderId;
     return await this.favoriteRepo.save(favorite);
   }
+
+   // Eliminar favorito por vivacId
+  async removeFavoriteByVivacId(userId: string, vivacId: string) {
+    const fav = await this.favoriteRepo.findOne({
+      where: { userId, vivacId },
+    });
+
+    if (!fav) throw new NotFoundException('Favorito no encontrado');
+
+    await this.favoriteRepo.remove(fav);
+    return { message: 'Eliminado de favoritos' };
+  }
+
 }

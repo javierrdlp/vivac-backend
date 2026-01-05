@@ -181,4 +181,22 @@ export class FavoritesController {
       newFolderId,
     );
   }
+
+  //Eliminar favorito por vivac id
+ @Delete('by-vivac/:vivacId')
+  @ApiOperation({
+    summary: 'Eliminar favorito por vivacId',
+    description:
+      'Quita un vivac de favoritos usando el vivacId.',
+  })
+  @ApiParam({
+    name: 'vivacId',
+    description: 'ID del vivac a eliminar de favoritos.',
+  })
+  @ApiOkResponse({ description: 'Favorito eliminado correctamente.' })
+  @ApiNotFoundResponse({ description: 'El favorito no existe.' })
+  removeFavoriteByVivac(@Req() req, @Param('vivacId') vivacId: string) {
+    return this.favoritesService.removeFavoriteByVivacId(req.user.id, vivacId);
+  }
+
 }
