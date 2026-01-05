@@ -17,7 +17,18 @@ export class FavoritesService {
 
     @InjectRepository(VivacPoint)
     private vivacRepo: Repository<VivacPoint>,
-  ) {}
+  ) { }
+
+  // Listar todos los vivacs favoritos del usuario
+  async getAllFavoriteVivacs(userId: string) {
+    const favorites = await this.favoriteRepo.find({
+      where: { userId },
+      relations: ['vivac'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return favorites.map(fav => fav.vivac);
+  }
 
   // Crear carpeta
   async createFolder(userId: string, dto: CreateFolderDto) {
